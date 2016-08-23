@@ -1,0 +1,42 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.androidfirsttest.MainActivity" >
+
+    <Button
+        android:id="@+id/scaleBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/hello_world" />
+    <RelativeLayout 
+       android:layout_width="match_parent"
+       android:layout_height="match_parent" 
+       android:layout_below="@id/scaleBtn">
+       
+        <RelativeLayout 
+	       android:layout_width="match_parent"
+	       android:layout_height="match_parent" 
+	       android:layout_above="@+id/checkedTextView1"
+	       android:gravity="center">
+	       
+	     <Button
+	        android:id="@+id/alphaBtn"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"        
+	        android:text="Button1111"/>
+	     </RelativeLayout>
+	
+	    <CheckedTextView
+	        android:id="@+id/checkedTextView1"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignParentBottom="true"
+	        android:paddingBottom="30dp"
+	        android:text="CheckedTextView" />
+        
+    </RelativeLayout>
+
+
+
+</RelativeLayout>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- android:fromDegrees 负值表示逆时钟方向
+ -->
+<set 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:repeatCount="5"
+    android:repeatMode="restart"
+    android:fillAfter="true">     
+    <rotate
+	    android:fromDegrees="0"
+	    android:toDegrees="270"
+	    android:duration="3000"
+	    android:startOffset="500"
+	    android:pivotX="0"
+	    android:pivotY="0"    
+    >
+    </rotate> 
+    
+   <rotate
+	   android:fromDegrees="0"
+	   android:toDegrees="-90"
+	   android:duration="3000"
+	   android:startOffset="3500"
+	   android:pivotX="0"
+	   android:pivotY="0" 
+	      
+    >
+
+    
+</rotate>
+</set>

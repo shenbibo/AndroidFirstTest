@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <Button
+        android:id="@+id/translateButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="44dp"
+        android:layout_marginTop="18dp"
+        android:text="平移动画" />
+
+    <Button
+        android:id="@+id/alphaBtn"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/translateButton"
+        android:layout_below="@+id/translateButton"
+        android:layout_marginLeft="53dp"
+        android:text="渐变动画" />
+
+    <Button
+        android:id="@+id/scaleBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/alphaBtn"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="17dp"
+        android:layout_toRightOf="@+id/alphaBtn"
+        android:text="缩放动画" />
+
+    <Button
+        android:id="@+id/rotateBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/translateButton"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="19dp"
+        android:text="旋转动画" />
+
+    <Button
+        android:id="@+id/setBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/alphaBtn"
+        android:layout_below="@+id/rotateBtn"
+        android:layout_marginTop="37dp"
+        android:text="组合动画" />
+
+    <Button
+        android:id="@+id/frameBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/translateButton"
+        android:layout_below="@+id/setBtn"
+        android:layout_marginTop="31dp"
+        android:text="帧动画" 
+        android:background="@drawable/animation_list"/>
+
+</RelativeLayout>

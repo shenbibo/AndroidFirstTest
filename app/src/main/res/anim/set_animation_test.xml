@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--android:repeatCount="infinite" 表示无限重复-->
+<set
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="500"
+    android:repeatCount="5"
+    >
+    <alpha
+        android:fromAlpha="1"
+        android:toAlpha="0.3">
+        
+    </alpha>
+    
+    <rotate
+        android:fromDegrees="0"
+        android:toDegrees="720"
+        android:pivotX="50%"
+        android:pivotY="50%">
+        
+    </rotate>
+    
+    <scale
+        android:fromXScale="0.1"
+        android:toXScale="1.0"
+        android:fromYScale="0.5"
+        android:toYScale="3"
+        android:pivotX="0"
+        android:pivotY="0">
+        
+    </scale>
+    
+    <translate
+        android:fromXDelta="0"
+        android:toXDelta="700"
+        android:fromYDelta="0"
+        android:toYDelta="-700"
+        ></translate>
+    
+    <!-- 此处的android:fromXDelta =0 不是从原来的view起始位置开始，而是上一次动画的终点 -->
+    <translate
+        android:fromXDelta="0"
+        android:toXDelta="-80"
+        android:fromYDelta="0"
+        android:toYDelta="-700"
+        android:startOffset="3000"
+    ></translate>
+    
+
+</set>

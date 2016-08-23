@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" 
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/firstPager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="第一页" 
+            android:layout_weight="1.0"
+            android:gravity="center"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/secondPager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="第二页" 
+            android:layout_weight="1.0"
+            android:gravity="center"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/thirdPager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="第三页" 
+            android:layout_weight="1.0"
+            android:gravity="center"
+            android:textSize="18sp"/>
+        
+    </LinearLayout>
+
+    <!-- 用于指示ViewPager滑动的指示器 -->
+    <ImageView
+        android:id="@+id/pointer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/flg_point" 
+        android:scaleType="matrix"/>
+        
+</merge>

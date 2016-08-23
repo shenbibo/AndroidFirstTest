@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+    <widget.mytablelayout.MyTableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="false"
+        android:id="@+id/tablelayout"
+        >
+        <TableRow
+            android:minHeight="100dp">
+            <Button
+                android:text="111111"
+                android:layout_height="match_parent"
+                >
+            </Button>
+            <TextView
+                android:text="222222"
+                android:clickable="true"
+                android:layout_height="match_parent"
+                android:gravity="center"/>
+        </TableRow>
+
+        <TableRow
+            android:weightSum="2">
+            <Button
+                android:text="333333"/>
+            <TextView
+                android:text="444444"
+                android:clickable="true"
+                />
+            <TextView
+                android:text="777777"
+                />
+
+        </TableRow>
+
+        <TableRow
+            android:weightSum="3">
+            <Button
+                android:text="55555"/>
+            <TextView
+                android:text="66666"
+                android:clickable="true"/>
+            <Button
+                android:text="888888"
+                />
+            <TextView
+                android:text="999999"/>
+        </TableRow>
+    </widget.mytablelayout.MyTableLayout>
+
+</RelativeLayout>

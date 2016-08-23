@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- android:zAdjustment 表示被设置动画的内容运行时在Z轴上的位置（top/bottom/normal），默认为normal
+android:fillAfter 控件动画结束时是否保持动画最后的状态，属性只有在set中才有效
+android:fillBefore 控件动画结束时是否还原到开始动画前的状态
+android:fromXDelta="0" 不是坐标原点的0 而是指从当前位置开始，若为负值则表示比当前View的左上角坐标小的方向偏移
+android:fillBefore="true"
+android:zAdjustment 一直设置无效？理解不正确？
+-->
+<set 
+    xmlns:android="http://schemas.android.com/apk/res/android"    
+    android:zAdjustment="top" 
+    android:fillEnabled="true"
+    
+    >
+<translate
+    android:fromXDelta="0" 
+    android:toXDelta="800"
+    android:fromYDelta="0"
+    android:toYDelta="1234"
+    android:duration="4000"      
+    android:interpolator="@android:anim/linear_interpolator"
+    android:repeatCount="5">
+</translate>
+</set>

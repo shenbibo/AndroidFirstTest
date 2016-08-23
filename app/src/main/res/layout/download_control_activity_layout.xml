@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <Button
+        android:id="@+id/downlodAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="35dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:text="全部下载" />
+
+    <Button
+        android:id="@+id/pauseAll"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="50dp"
+        android:text="全部暂停" />
+
+    <ListView
+        android:id="@+id/dowloadListView"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/downlodAll"
+        android:layout_marginTop="10dp" 
+        android:layout_marginBottom="5dp"
+        android:divider="@null"
+        android:layoutAnimation="@anim/listview_item_anim_layout">
+    </ListView>
+
+</RelativeLayout>
