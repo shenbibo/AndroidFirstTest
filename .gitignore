@@ -75,6 +75,5 @@ gradle-app.setting
 
 # IntelliJ project files
 .idea
-*.iml
 out
 gen
