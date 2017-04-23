@@ -92,6 +92,11 @@
         <!---->
         <activity android:name="com.handler.delay.test.HandlerDelayTestActivity"/>
 
+        <!--RxBinding-->
+        <activity android:name="rxbinding.view.RxBindActivity"/>
+        <!--RxJava-->
+        <activity android:name="rxjava.view.RxJavaTestActivity"/>
+
         <service 
             android:name="com.example.androidfirsttest.TestService">           
         </service>

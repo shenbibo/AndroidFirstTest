@@ -16,7 +16,7 @@ import com.example.androidfirsttest.R;
  * 发送延时消息，抓取堆栈查看是否会停留在MessageQueue.nativePollOnce()方法中,并且是否会导致主线程阻塞
  * Created by shenbb on 2016/7/20.
  */
-public class HandlerDelayTestActivity extends BaseActivity{
+public class HandlerDelayTestActivity extends BaseActivity {
 
     private static final String TAG = "HandlerDelayTestActivi";
 
@@ -40,7 +40,7 @@ public class HandlerDelayTestActivity extends BaseActivity{
 
     @Override
     protected void initValues() {
-        myHandler = new Handler(){
+        myHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
                 try {
@@ -56,18 +56,9 @@ public class HandlerDelayTestActivity extends BaseActivity{
 
     @Override
     protected void initListeners() {
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(HandlerDelayTestActivity.this, "button is click", Toast.LENGTH_LONG).show();
-                new Thread(){
-                    @Override
-                    public void run() {
-                        myHandler.sendMessageAtFrontOfQueue(myHandler.obtainMessage());
-                        super.run();
-                    }
-                }.start();
-            }
+        button.setOnClickListener(v -> {
+            Toast.makeText(HandlerDelayTestActivity.this, "button is click", Toast.LENGTH_LONG).show();
+            new Thread(() -> myHandler.sendMessageAtFrontOfQueue(myHandler.obtainMessage())).start();
         });
     }
 }

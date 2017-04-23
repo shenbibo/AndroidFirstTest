@@ -9,16 +9,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.camera.test.CameraTestActivity;
 import com.gc.test.view.GCtestAtivity;
 import com.handler.delay.test.HandlerDelayTestActivity;
-import com.ipc.test.activity.IpcTestActivity;
-import com.widget.test.toolbar.activity.ToolBarTestActivity;
-
-import component.data.exchange.activity.BaseFragmentActivity;
-import download.test.NetworkTest;
-import download.test.control.DownloadControlActivity;
-import widget.mytablelayout.TableLayoutTestActivity;
 
 import android.support.v7.app.ActionBarActivity;
 import android.content.Intent;
@@ -33,12 +25,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+import rxjava.view.RxJavaTestActivity;
+
 
 public class MainActivity extends ActionBarActivity {
 
     private static final String TAG = "MainActivity";
-    private Button button;
-    private Button button2;
+    private Button middleButton;
+    private Button leftTopButton2;
     
 
     private static final int testValue = 1;
@@ -106,10 +100,10 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		button = (Button) findViewById(R.id.alphaBtn);
+		middleButton = (Button) findViewById(R.id.alphaBtn);
 
 
-		button.setOnClickListener(new OnClickListener()
+		middleButton.setOnClickListener(new OnClickListener()
         {
             
             @Override
@@ -189,15 +183,17 @@ public class MainActivity extends ActionBarActivity {
 //                MainActivity.this.startActivity(i);
 
                 //发送延时消息，抓取堆栈查看是否会停留在MessageQueue.nativePollOnce()方法中,并且是否会导致主线程阻塞
-                  Intent i = new Intent(MainActivity.this, HandlerDelayTestActivity.class);
+//                  Intent i = new Intent(MainActivity.this, HandlerDelayTestActivity.class);
+//                  MainActivity.this.startActivity(i);
+
+                // Rxjava测试界面
+                  Intent i = new Intent(MainActivity.this, RxJavaTestActivity.class);
                   MainActivity.this.startActivity(i);
 
-
-                
             }
         });
-		button2 = (Button) findViewById(R.id.scaleBtn);
-		button2.setOnClickListener(new OnClickListener()
+		leftTopButton2 = (Button) findViewById(R.id.scaleBtn);
+		leftTopButton2.setOnClickListener(new OnClickListener()
         {
             
             @Override
@@ -445,7 +441,7 @@ public class MainActivity extends ActionBarActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
+		// automatically handle clicks on the Home/Up middleButton, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		if (id == R.id.action_settings) {
