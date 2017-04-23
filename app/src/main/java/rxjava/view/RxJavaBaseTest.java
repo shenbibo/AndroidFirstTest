@@ -4,7 +4,9 @@ import android.util.Log;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.reactivex.Scheduler;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * [RxJava基本功能测试类]
@@ -27,7 +29,8 @@ public class RxJavaBaseTest {
         });
 
         Observer<String> stringObserver1 = new Observer<String>() {
-            // 该方法的调用和onNext方法在同一线程，并且先于onNext调用
+            // 该方法的调用和onNext之前调用，但是并不一定在同一个线程，具体见ObservableSubscribeOn.subscribeActual方法
+            // 该方法一直在调用subscribe方法的线程中调用
             @Override
             public void onSubscribe(Disposable d) {
                 Log.i(TAG, "full stringObserver1 called");
@@ -49,7 +52,7 @@ public class RxJavaBaseTest {
             }
         };
 
-        stringObservable.subscribe(stringObserver1);
+        stringObservable.subscribeOn(Schedulers.io()).subscribe(stringObserver1);
     }
 
     /**
