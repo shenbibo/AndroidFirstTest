@@ -10,6 +10,8 @@ import com.example.androidfirsttest.R;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import rxjava.RxJavaBaseTest;
+import rxjava.RxJavaThreadSchedulerTest;
 
 /**
  * [一句话描述类的作用]
@@ -18,11 +20,12 @@ import butterknife.OnClick;
  */
 
 public class RxJavaTestActivity extends AppCompatActivity {
+    private static final String TAG = "RxJavaTestActivity";
 
     @BindView(R.id.rx_basic_test_button)
     Button rxBasicTestButton;
-    @BindView(R.id.button3)
-    Button button3;
+    @BindView(R.id.rx_basic_thread_test_button)
+    Button rxThreadSchedulerTestButton;
     @BindView(R.id.button4)
     Button button4;
     @BindView(R.id.button5)
@@ -48,11 +51,16 @@ public class RxJavaTestActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.rx_basic_test_button)
-    public void onRxBasicTest(){
+    public void onRxBasicTest() {
         RxJavaBaseTest.testFullObserver();
         RxJavaBaseTest.testJustCreateSimpleObservableWithFullObserver();
         RxJavaBaseTest.testObserverOnlyOnNext();
         RxJavaBaseTest.testObserverOnNextAndOnError();
         RxJavaBaseTest.testCancelObserverWhenOnSubscribeCalled();
+    }
+
+    @OnClick(R.id.rx_basic_thread_test_button)
+    public void onRxThreadSchedulerTestButton() {
+        RxJavaThreadSchedulerTest.testDoInSubThreadAndCallbackInMainThread();
     }
 }

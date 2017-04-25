@@ -1,10 +1,9 @@
-package rxjava.view;
+package rxjava;
 
 import android.util.Log;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 

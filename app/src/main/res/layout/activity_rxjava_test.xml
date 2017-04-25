@@ -8,24 +8,25 @@
         android:id="@+id/rx_basic_test_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:layout_marginLeft="18dp"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="35dp"
+        android:text="RxJava基本功能测试"
         android:layout_alignParentTop="true"
-        android:layout_marginLeft="47dp"
-        android:layout_marginStart="47dp"
-        android:layout_marginTop="36dp"
-        android:text="RxJava基本功能测试"/>
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
 
     <Button
-        android:id="@+id/button3"
+        android:id="@+id/rx_basic_thread_test_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="13dp"
+        android:layout_marginRight="13dp"
+        android:text="RxJava线程功能测试"
+        android:layout_alignBaseline="@+id/rx_basic_test_button"
+        android:layout_alignBottom="@+id/rx_basic_test_button"
         android:layout_alignParentRight="true"
-        android:layout_alignTop="@+id/rx_basic_test_button"
-        android:layout_marginEnd="48dp"
-        android:layout_marginRight="48dp"
-        android:text="Button"/>
+        android:layout_alignParentEnd="true"/>
 
     <Button
         android:id="@+id/button4"
@@ -42,8 +43,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/button4"
-        android:layout_alignLeft="@+id/button3"
-        android:layout_alignStart="@+id/button3"
+        android:layout_alignLeft="@+id/rx_basic_thread_test_button"
+        android:layout_alignStart="@+id/rx_basic_thread_test_button"
         android:text="Button"/>
 
     <Button
