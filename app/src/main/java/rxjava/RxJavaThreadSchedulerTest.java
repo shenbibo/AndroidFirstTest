@@ -1,14 +1,12 @@
 package rxjava;
 
-import android.os.Handler;
+
 import android.util.Log;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
+
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -102,18 +100,43 @@ public class RxJavaThreadSchedulerTest {
     }
 
     /**
-     * 测试不连续调用observeOn方法，分别执行线程切换
+     * 测试不连续调用observeOn方法，分别执行observeOn方法，再执行doOnNext()，再执行.....
+     * doOnNext()方法可以对传入的Consumer<? super T> onNext的参数T做处理，从而达到改变的目的，但是如果参数T是不可变类型（如String）
+     * 则改变是无效的，另外同理对T重新赋予一个新的对象也是无效的。
      */
-    public static void testtDoInSubThreadAndCallObserveOnMethodDiscrete() {
-        Observable<String> stringObservable = Observable.create(e -> {
+    public static void testDoInSubThreadAndCallObserveOnMethodDiscrete() {
+        Observable<Test> testObservable = Observable.create(e -> {
             Log.i(TAG, "current thread = " + Thread.currentThread().getName());
-            e.onNext("doInSubThreadTest, and observeOn call Discrete");
+            e.onNext(new Test("doInSubThreadTest, and observeOn call Discrete"));
             e.onComplete();
         });
 
         // doOnNext 在调用onNext方法之前调用，对数据的一个处理
-        stringObservable.subscribeOn(Schedulers.io()) // 该方法只在第一次调用的时候有效，后面调用会被忽略掉
-                        .observeOn(AndroidSchedulers.mainThread()) // observeOn连续调用时最后一次调用生效
-                        .doOnNext(s -> Log.i(TAG, "thread = " + Thread.currentThread().getName() + ", value = " + s));
+        testObservable.subscribeOn(Schedulers.io()) // 该方法只在第一次调用的时候有效，后面调用会被忽略掉
+                      .observeOn(AndroidSchedulers.mainThread()) // observeOn连续调用时最后一次调用生效
+                      .doOnNext(s -> {  // 注意可以在doOnNext中对对象的字段进行修改
+                          Log.i(TAG, "first do on next, thread = " + Thread.currentThread().getName() + ", value = " + s);
+                          s.text = s.text + " " + Thread.currentThread().getName();
+                      })
+                      .observeOn(Schedulers.newThread())
+                      .doOnNext(s -> {
+                          Log.i(TAG, "second do on next, thread = " + Thread.currentThread().getName() + ", value = " + s);
+                          s.text = s.text + " " + Thread.currentThread().getName();
+                      })
+                      .subscribe(s -> Log.i(TAG, "onNext = " + Thread.currentThread().getName() + ", value = " + s));
+
+    }
+
+    public static class Test {
+        String text;
+
+        public Test(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public String toString() {
+            return "Test{" + "text='" + text + '\'' + '}';
+        }
     }
 }

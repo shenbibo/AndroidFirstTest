@@ -59,8 +59,17 @@ public class RxJavaTestActivity extends AppCompatActivity {
         RxJavaBaseTest.testCancelObserverWhenOnSubscribeCalled();
     }
 
+    int basicThreadButtonClickCount = 0;
+
     @OnClick(R.id.rx_basic_thread_test_button)
     public void onRxThreadSchedulerTestButton() {
-        RxJavaThreadSchedulerTest.testDoInSubThreadAndCallbackInMainThread();
+        ++basicThreadButtonClickCount;
+        if (basicThreadButtonClickCount % 3 == 1) {
+            RxJavaThreadSchedulerTest.testDoInSubThreadAndCallbackInMainThread();
+        } else if (basicThreadButtonClickCount % 3 == 2) {
+            RxJavaThreadSchedulerTest.testDoInSubThreadAndObserveOnFunctionContinueCallThreeTimes();
+        } else {
+            RxJavaThreadSchedulerTest.testDoInSubThreadAndCallObserveOnMethodDiscrete();
+        }
     }
 }
