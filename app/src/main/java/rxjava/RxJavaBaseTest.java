@@ -2,6 +2,8 @@ package rxjava;
 
 import android.util.Log;
 
+import com.sky.slog.Slog;
+
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -28,8 +30,8 @@ public class RxJavaBaseTest {
         });
 
         Observer<String> stringObserver1 = new Observer<String>() {
-            // 该方法的调用和onNext之前调用，但是并不一定在同一个线程，具体见ObservableSubscribeOn.subscribeActual方法
-            // 该方法一直在调用subscribe方法的线程中调用
+            // 该方法一定在onNext之前调用，但是并不一定在同一个线程，具体见ObservableSubscribeOn.subscribeActual方法
+            // 该方法的调用绝大多数在执行subscribe方法的线程中调用
             @Override
             public void onSubscribe(Disposable d) {
                 Log.i(TAG, "full stringObserver1 called");
@@ -58,6 +60,8 @@ public class RxJavaBaseTest {
      * 测试使用Just方法简单创建可观察的对象
      */
     public static void testJustCreateSimpleObservableWithFullObserver() {
+
+        // just 方法最多可以组合10个item(对象)
         Observable<String> stringObservable = Observable.just("justCreateObservable1", "justCreateObservable2");
 
         Observer<String> stringObserver2 = new Observer<String>() {
@@ -84,6 +88,36 @@ public class RxJavaBaseTest {
         };
 
         stringObservable.subscribe(stringObserver2);
+    }
+
+    /**
+     * 使用just创建被观察者，给它传递的数据是不同的对象
+     */
+    public static void testJustWithMultiObject() {
+        Observable<Object> multiObjectJustObservable = Observable.just("string", 123, 1.732f, 3.14, 'c', new User("sky", 30));
+
+        multiObjectJustObservable.subscribe(new Observer<Object>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+
+            }
+
+            @Override
+            public void onNext(Object o) {
+                Slog.t(TAG).i("multiObjectJustObservableTest, obj = %s", o.toString());
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+
     }
 
     /**
@@ -116,10 +150,29 @@ public class RxJavaBaseTest {
 
         stringObservable5.subscribe(string -> Log.i(TAG, string),
                 e -> Log.i(TAG, e.getMessage()),
-                ()->Log.i(TAG, "onCompletedCalled"),
+                () -> Log.i(TAG, "onCompletedCalled"),
                 disposable -> {
                     Log.i(TAG, "stringObservable5 onSubscribe called, ready to dispose");
                     disposable.dispose();
                 });
+    }
+
+
+    public static class User {
+        String name;
+        int age;
+
+        public User(String name, int age) {
+            this.name = name;
+            this.age = age;
+        }
+
+        @Override
+        public String toString() {
+            return "User{" +
+                    "name='" + name + '\'' +
+                    ", age=" + age +
+                    '}';
+        }
     }
 }
