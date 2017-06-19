@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import java.util.*;
 import java.util.concurrent.*;
 
-import io.reactivex.*;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -359,30 +358,4 @@ public class RxJavaBaseTest2 {
         deferObservable.subscribe(user1 -> Slog.t(TAG).i("testDeferOperateObservable, USER = " + user1.toString()));
     }
 
-
-    public static class User {
-        String name;
-        int age;
-
-        public User(String name, int age) {
-            this.name = name;
-            this.age = age;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public void setAge(int age) {
-            this.age = age;
-        }
-
-        @Override
-        public String toString() {
-            return "User{" +
-                    "name='" + name + '\'' +
-                    ", age=" + age +
-                    '}';
-        }
-    }
 }
