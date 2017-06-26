@@ -40,6 +40,16 @@ public class RxJavaFlowableTest {
     // BackpressureStrategy.LATEST    // 与Drop类似，不过总是会保证最后一个事件能够发送
     // BackpressureStrategy.MISSING   // 既不缓存也不丢弃，把事件丢给其调用链的下级来处理
 
+    // BackpressureStrategy.ERROR  注意使用该策略时，如果消费者的消费能力小于生产者的生成能力，当缓存池满时，就会调用onError,事件还可以正常执行，但是不在发射到下游，在订阅者中使用Subscription.request(n)只是表示最终我需要消费多少事件，而不能改变缓存池的大小。
+
+
+    // 当订阅和事件发射在同一个线程时，预取事件的数目就和Subscription.request(n)的数目保持一致
+    // 当订阅和事件发射不在同一个线程时，不管采取的是什么策略，第一次预取事件的数目的大小为128，以后每次取（(128 - 128 >> 2) = 96 ），
+    // 具体可以查看FlowableObserveOn.BaseObserveOnSubscriber的prefetch和limit字段的使用
+    // 在异步中，当消费者消费了limit个事件后，就会重新去预取去limit个事件
+    // 所谓的预取并不是真的等待着事件源发射事件取出，而是指重新给缓存池扩增limit个缓存事件的容量（用一个AmoticLong做标记）
+    // 其实MissingBackpressureException的抛出就是生产者的容量已经为0，但是消费者还没有重新要求增加生产者的缓存容量
+    // 在目前Rxjava的设计异步实现中，最大容量是不会超过128的。
 
     /**
      * ERROR背压策略
@@ -69,8 +79,8 @@ public class RxJavaFlowableTest {
 //                Slog.t(TAG).i("onNext i = " + i);
 //            }
             e.onComplete();
-        }, BackpressureStrategy.ERROR)
-                .subscribeOn(Schedulers.io())
+        }, BackpressureStrategy.BUFFER)
+//                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread()/*Schedulers.newThread()*/)
                 .subscribe(new Subscriber<Integer>() {
                     @Override
@@ -78,7 +88,7 @@ public class RxJavaFlowableTest {
                         // 注意如果观察者没有请求任何事件，下游是收不到任何事件的，但是并不影响事件本身的执行
                         // 当值为Long.MAX_VALUE时，其实就是表示下游接收所有的事件
 //                        sp[0] = s;
-                        s.request(100);
+                        s.request(Long.MAX_VALUE);
                     }
 
                     @Override
