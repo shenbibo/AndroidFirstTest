@@ -1,8 +1,7 @@
 package retrofit;
 
 import io.reactivex.Observable;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
+import retrofit2.http.*;
 
 /**
  * [测试器]
@@ -21,8 +20,16 @@ public interface ApiServer {
 //    @GET("search?city={city}&key={key}")
 //    Observable<HeWeather5> getCityInfo1(@Path("city") String city, @Path("key") String key);
 
+    // 注意使用该方式也不可以，如果method的值为"search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508"
+    // 那么？会被URL统一化为：%3F
+    @GET("{method}")
+    Observable<Root> getCityInfo3(@Path("method") String method);
 
     // 使用完整后缀
     @GET("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508")
     Observable<Root> getCityInfo2();
+
+//    // 使用完整后缀
+//    @GET("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508")
+//    Observable<Root> getCityInfo3(@QueryMap);
 }
