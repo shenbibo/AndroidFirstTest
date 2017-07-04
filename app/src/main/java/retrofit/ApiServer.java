@@ -1,6 +1,7 @@
 package retrofit;
 
 import io.reactivex.Observable;
+import okhttp3.ResponseBody;
 import retrofit2.http.*;
 
 /**
@@ -22,6 +23,8 @@ public interface ApiServer {
 
     // 注意使用该方式也不可以，如果method的值为"search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508"
     // 那么？会被URL统一化为：%3F
+    // 或者  @Path(value = "method", encoded = true)
+    //
     @GET("{method}")
     Observable<Root> getCityInfo3(@Path("method") String method);
 
@@ -32,4 +35,8 @@ public interface ApiServer {
 //    // 使用完整后缀
 //    @GET("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508")
 //    Observable<Root> getCityInfo3(@QueryMap);
+
+    // 使用完整后缀
+    @GET("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508")
+    Observable<ResponseBody> getCityInfo5();
 }

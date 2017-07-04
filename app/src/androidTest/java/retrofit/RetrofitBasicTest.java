@@ -36,5 +36,9 @@ public class RetrofitBasicTest {
         Slog.t(TAG).i("start getCityInfo4 test");
         WeatherRequest.getCityInfo4();
         SystemClock.sleep(5000);
+
+//        Slog.t(TAG).i("start getCityInfo5 test");
+//        WeatherRequest.getCityInfo5();
+//        SystemClock.sleep(5000);
     }
 }

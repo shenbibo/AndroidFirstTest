@@ -2,6 +2,8 @@ package retrofit;
 
 import android.content.pm.ApplicationInfo;
 
+import com.example.androidfirsttest.R;
+import com.google.gson.Gson;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import com.sky.slog.Slog;
 
@@ -12,7 +14,9 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.*;
 import retrofit2.Retrofit;
@@ -161,14 +165,66 @@ public class WeatherRequest {
                   });
     }
 
-    public static void getCityInfo4(){
+    // 注意使用该方式也不可以，如果method的值为"search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508"
+    // 那么？会被URL统一化为：%3F
+    public static void getCityInfo5() {
+        ApiServer server = retrofit.create(ApiServer.class);
+        Observable<ResponseBody> observable = server.getCityInfo5();
+
+        observable.subscribeOn(Schedulers.io())
+                  .map(responseBody -> {
+                      Gson gson = new Gson();
+                      return gson.fromJson(responseBody.string(), Root.class);
+                  })
+                  .observeOn(AndroidSchedulers.mainThread())
+                  .subscribe(new Observer<Root>() {
+                      @Override
+                      public void onSubscribe(Disposable d) {
+
+                      }
+
+                      @Override
+                      public void onNext(Root heWeather5s) {
+                          Slog.t(TAG).i(heWeather5s.toString());
+                      }
+
+                      @Override
+                      public void onError(Throwable e) {
+                          Slog.t(TAG).e(e);
+                      }
+
+                      @Override
+                      public void onComplete() {
+                          Slog.t(TAG).i("getCityInfo3 complete");
+                      }
+                  });
+    }
+
+    public static void getCityInfo4() {
         RequestBean requestBean = new City();
         HttpUtils.get(requestBean, new SimpleHttpCallback<Root>() {
             @Override
             public void onSuccess(Root root) {
                 Slog.t(TAG).i(root);
             }
-        }, RootService.class);
+        });
+
+//        HttpUtils.get(requestBean, new HttpCallback<Root>() {
+//            @Override
+//            public void onStart(Disposable disposable) {
+//
+//            }
+//
+//            @Override
+//            public void onSuccess(Root root) {
+//                Slog.t(TAG).i(root);
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable e) {
+//
+//            }
+//        });
     }
 
 
@@ -181,12 +237,13 @@ public class WeatherRequest {
             Slog.t(TAG).i(response.toString());
 
 //            Slog.t(TAG).json(response.body().string());
+//            ResponseBody
             return response;
         }
     }
 
-    public static class City extends RequestBean{
-        public City(){
+    public static class City extends RequestBean {
+        public City() {
             super();
             method = "search";
         }

@@ -104,7 +104,8 @@ public class RxJavaBaseTest2 {
      */
     @Test
     public void testJustWithMultiObject() {
-        Observable<Object> multiObjectJustObservable = Observable.just("string", 123, 1.732f, 3.14, 'c', new User("sky", 30));
+        Observable<Object> multiObjectJustObservable = Observable.just("string", 123, 1.732f, 3.14, 'c', new User
+                ("sky", 30));
 
         multiObjectJustObservable.subscribe(new Observer<Object>() {
             @Override
@@ -163,12 +164,12 @@ public class RxJavaBaseTest2 {
 
         // 一旦disposable.dispose(); 调用了，所有的事件在观察者则不再接收
         stringObservable5.subscribe(string -> Log.i(TAG, string),
-                e -> Log.i(TAG, e.getMessage()),
-                () -> Log.i(TAG, "onCompletedCalled"),
-                disposable -> {
-                    Log.i(TAG, "stringObservable5 onSubscribe called, ready to dispose");
-                    disposable.dispose();
-                });
+                                    e -> Log.i(TAG, e.getMessage()),
+                                    () -> Log.i(TAG, "onCompletedCalled"),
+                                    disposable -> {
+                                        Log.i(TAG, "stringObservable5 onSubscribe called, ready to dispose");
+                                        disposable.dispose();
+                                    });
     }
 
     /** 测试from操作符 */
@@ -253,7 +254,8 @@ public class RxJavaBaseTest2 {
     @Test
     public void testIntervalOperateObservable() {
         // 初始延时1000ms, 后面每条延时500ms
-        Observable<Long> intervalObservable = Observable.interval(1000, 500, TimeUnit.MILLISECONDS, Schedulers.newThread());
+        Observable<Long> intervalObservable = Observable.interval(1000, 500, TimeUnit.MILLISECONDS, Schedulers
+                .newThread());
 
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         Observer<Long> intervalObserver = new Observer<Long>() {
@@ -303,7 +305,7 @@ public class RxJavaBaseTest2 {
     }
 
     @Test
-    public void testRepeatOperateObservable(){
+    public void testRepeatOperateObservable() {
         Slog.t(TAG).i("testRepeatOperateObservable, start now");
 
         ArrayList<String> testStrings = new ArrayList<>();
@@ -346,11 +348,11 @@ public class RxJavaBaseTest2 {
 
     /**
      * defer在发生订阅时才执行Observable对象的创建，并且每一次订阅可以返回一个新的对象，适合于每次订阅都获取最新的数据
-     * */
+     */
     @Test
-    public void testDeferOperateObservable(){
+    public void testDeferOperateObservable() {
         final User user = new User("sky", 123);
-        Observable<User> deferObservable = Observable.defer(()-> Observable.just(user));
+        Observable<User> deferObservable = Observable.defer(() -> Observable.just(user));
 
         user.setName("gavin");
         user.setAge(321);
