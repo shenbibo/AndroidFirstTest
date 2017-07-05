@@ -31,7 +31,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class WeatherRequest {
     public static final String TAG = "RetrofitBasicTest";
     public static final String WEATHER_KEY = "b06e0a9a06024ea0b09c4053b905b508";
-    public static final String BASE_URL = "https://api.heweather.com/v5/";
+    public static final String BASE_URL = "https://api.heweather.com/v5/";   // baseUr必须要以/结尾
 
     private static OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
                                                                  .addInterceptor(new TestInterceptor())
@@ -138,8 +138,11 @@ public class WeatherRequest {
     // 那么？会被URL统一化为：%3F
     public static void getCityInfo3() {
         ApiServer server = retrofit.create(ApiServer.class);
-        Observable<Root> observable = server.getCityInfo3("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508");
+        // 指定全部的URL也是可以的
+        Observable<Root> observable = server.getCityInfo3("https://api.heweather.com/v5/search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508");
 
+        // 只给出部分的URL也是可以的，只要设置了正确的baseUrl
+//        Observable<Root> observable = server.getCityInfo3("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508");
         observable.subscribeOn(Schedulers.io())
                   .observeOn(AndroidSchedulers.mainThread())
                   .subscribe(new Observer<Root>() {
@@ -161,6 +164,40 @@ public class WeatherRequest {
                       @Override
                       public void onComplete() {
                           Slog.t(TAG).i("getCityInfo3 complete");
+                      }
+                  });
+    }
+
+    public static void getCityInfo4_1() {
+        ApiServer server = retrofit.create(ApiServer.class);
+        // 指定全部的URL也是可以的
+//        Observable<Root> observable = server.getCityInfo4("https://api.heweather.com/v5/search", "深圳", "b06e0a9a06024ea0b09c4053b905b508");
+
+        // 只给出部分的URL也是可以的，只要设置了正确的baseUrl，同时不完整的url 要符合 xxx/xxx/xxx.....
+        // 注意search前不能加'/'，否则其上一层的path会被忽略,url也可以是
+        Observable<Root> observable = server.getCityInfo4("search", "深圳", "b06e0a9a06024ea0b09c4053b905b508");
+
+        observable.subscribeOn(Schedulers.io())
+                  .observeOn(AndroidSchedulers.mainThread())
+                  .subscribe(new Observer<Root>() {
+                      @Override
+                      public void onSubscribe(Disposable d) {
+
+                      }
+
+                      @Override
+                      public void onNext(Root heWeather5s) {
+                          Slog.t(TAG).i(heWeather5s);
+                      }
+
+                      @Override
+                      public void onError(Throwable e) {
+                          Slog.t(TAG).e(e);
+                      }
+
+                      @Override
+                      public void onComplete() {
+                          Slog.t(TAG).i("getCityInfo4 complete");
                       }
                   });
     }
