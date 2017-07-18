@@ -85,7 +85,7 @@ public class DownloadRunnable implements Runnable
         //HttpParams params = request.getParams();
         if(startPos != 0)
         {
-            //get.addHeader("Range", "bytes=" + startPos + "-");
+            //doGet.addHeader("Range", "bytes=" + startPos + "-");
             get.addHeader("Range", "bytes=" + startPos + "-");
         }
         
@@ -221,7 +221,7 @@ public class DownloadRunnable implements Runnable
                                 if(info.isInterrupt() || percent > 100)
                                 {
                                     Log.d(TAG, "task is interrupted, jump out loop");
-                                    //get.abort();
+                                    //doGet.abort();
                                     break;
                                 }
                                 
@@ -330,7 +330,7 @@ public class DownloadRunnable implements Runnable
             {
                 if(!get.isAborted())
                 {
-                    Log.d(TAG, "get is not aborted");
+                    Log.d(TAG, "doGet is not aborted");
                     get.abort();
                 }
             }

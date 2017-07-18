@@ -178,7 +178,7 @@ public class RxJavaBaseTest2 {
         // 非背压模式下from支持5种方式：
         // array
         // iterable
-        // Future   // 返回future.get()的返回值，并且可以添加超时机制，还可以指定future.get()执行的线程
+        // Future   // 返回future.doGet()的返回值，并且可以添加超时机制，还可以指定future.doGet()执行的线程
         // publisher(是不是支持将背压模式转换为非背压模式)
         // Callable
 

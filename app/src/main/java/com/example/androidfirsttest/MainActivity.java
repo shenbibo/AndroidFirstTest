@@ -416,7 +416,7 @@ public class MainActivity extends ActionBarActivity {
 	{
 	    
 	    super.onResume();
-	    //ViewServer.get(this).setFocusedWindow(this);
+	    //ViewServer.doGet(this).setFocusedWindow(this);
 	}
 	
 	/**
@@ -428,7 +428,7 @@ public class MainActivity extends ActionBarActivity {
 	    // TODO Auto-generated method stub
 	    Log.d(TAG, "onDestroy");
 	    super.onDestroy();
-	    //ViewServer.get(this).removeWindow(this);
+	    //ViewServer.doGet(this).removeWindow(this);
 	}
 
 	@Override

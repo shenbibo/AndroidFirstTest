@@ -15,7 +15,14 @@ import retrofit2.http.*;
 public interface BasicService {
 
     /** 抽象方法 */
-    @GET("{method}")
-    Observable<ResponseBody> get(@Path(value = "method", encoded = true) String method, @QueryMap Map<String, String> queryMap,
-                                 @HeaderMap Map<String, String> headMap);
+    @GET
+    Observable<ResponseBody> doGet(@Url String method,
+                                   @HeaderMap Map<String, String> headerMap,
+                                   @QueryMap Map<String, String> queryMap);
+
+    @FormUrlEncoded
+    @POST
+    Observable<ResponseBody> doPost(@Url String method,
+                                    @HeaderMap Map<String, String> headerMap,
+                                    @FieldMap Map<String, String> formFieldMap);
 }

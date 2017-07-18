@@ -19,6 +19,8 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.*;
+import retrofit.annotation.IgnoreField;
+import retrofit.annotation.QueryField;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -76,34 +78,34 @@ public class WeatherRequest {
                   });
     }
 
-//    public static void getCityInfo1(){
-//        ApiServer server = retrofit.create(ApiServer.class);
-//        Observable<HeWeather5> observable = server.getCityInfo1("深圳", WEATHER_KEY);
-//
-//        observable.subscribeOn(Schedulers.io())
-//                  .observeOn(AndroidSchedulers.mainThread())
-//                  .subscribe(new Observer<HeWeather5>() {
-//                      @Override
-//                      public void onSubscribe(Disposable d) {
-//
-//                      }
-//
-//                      @Override
-//                      public void onNext(HeWeather5 heWeather5) {
-//                          Slog.t(TAG).i(heWeather5);
-//                      }
-//
-//                      @Override
-//                      public void onError(Throwable e) {
-//                          Slog.t(TAG).e(e);
-//                      }
-//
-//                      @Override
-//                      public void onComplete() {
-//                          Slog.t(TAG).i("getCityInfo1 complete");
-//                      }
-//                  });
-//    }
+    //    public static void getCityInfo1(){
+    //        ApiServer server = retrofit.create(ApiServer.class);
+    //        Observable<HeWeather5> observable = server.getCityInfo1("深圳", WEATHER_KEY);
+    //
+    //        observable.subscribeOn(Schedulers.io())
+    //                  .observeOn(AndroidSchedulers.mainThread())
+    //                  .subscribe(new Observer<HeWeather5>() {
+    //                      @Override
+    //                      public void onSubscribe(Disposable d) {
+    //
+    //                      }
+    //
+    //                      @Override
+    //                      public void onNext(HeWeather5 heWeather5) {
+    //                          Slog.t(TAG).i(heWeather5);
+    //                      }
+    //
+    //                      @Override
+    //                      public void onError(Throwable e) {
+    //                          Slog.t(TAG).e(e);
+    //                      }
+    //
+    //                      @Override
+    //                      public void onComplete() {
+    //                          Slog.t(TAG).i("getCityInfo1 complete");
+    //                      }
+    //                  });
+    //    }
 
     public static void getCityInfo2() {
         ApiServer server = retrofit.create(ApiServer.class);
@@ -139,10 +141,11 @@ public class WeatherRequest {
     public static void getCityInfo3() {
         ApiServer server = retrofit.create(ApiServer.class);
         // 指定全部的URL也是可以的
-        Observable<Root> observable = server.getCityInfo3("https://api.heweather.com/v5/search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508");
+        Observable<Root> observable = server.getCityInfo3("https://api.heweather" +
+                                                                  ".com/v5/search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508");
 
         // 只给出部分的URL也是可以的，只要设置了正确的baseUrl
-//        Observable<Root> observable = server.getCityInfo3("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508");
+        //        Observable<Root> observable = server.getCityInfo3("search?city=深圳&key=b06e0a9a06024ea0b09c4053b905b508");
         observable.subscribeOn(Schedulers.io())
                   .observeOn(AndroidSchedulers.mainThread())
                   .subscribe(new Observer<Root>() {
@@ -171,7 +174,8 @@ public class WeatherRequest {
     public static void getCityInfo4_1() {
         ApiServer server = retrofit.create(ApiServer.class);
         // 指定全部的URL也是可以的
-//        Observable<Root> observable = server.getCityInfo4("https://api.heweather.com/v5/search", "深圳", "b06e0a9a06024ea0b09c4053b905b508");
+        //        Observable<Root> observable = server.getCityInfo4("https://api.heweather.com/v5/search", "深圳",
+        // "b06e0a9a06024ea0b09c4053b905b508");
 
         // 只给出部分的URL也是可以的，只要设置了正确的baseUrl，同时不完整的url 要符合 xxx/xxx/xxx.....
         // 注意search前不能加'/'，否则其上一层的path会被忽略,url也可以是
@@ -238,30 +242,15 @@ public class WeatherRequest {
     }
 
     public static void getCityInfo4() {
+        // 此处返回0，不会包含Object对象的参数
+        Slog.t(TAG).i("requestBean.getInterfaces = " + RequestBean.class.getInterfaces().length);
         RequestBean requestBean = new City();
-        HttpUtils.get(requestBean, new SimpleHttpCallback<Root>() {
+        HttpUtils.doGet(requestBean, new SimpleHttpCallback<Root>() {
             @Override
             public void onSuccess(Root root) {
                 Slog.t(TAG).i(root);
             }
         });
-
-//        HttpUtils.get(requestBean, new HttpCallback<Root>() {
-//            @Override
-//            public void onStart(Disposable disposable) {
-//
-//            }
-//
-//            @Override
-//            public void onSuccess(Root root) {
-//                Slog.t(TAG).i(root);
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable e) {
-//
-//            }
-//        });
     }
 
 
@@ -273,27 +262,22 @@ public class WeatherRequest {
             Response response = chain.proceed(request);
             Slog.t(TAG).i(response.toString());
 
-//            Slog.t(TAG).json(response.body().string());
-//            ResponseBody
+            //            Slog.t(TAG).json(response.body().string());
+            //            ResponseBody
             return response;
         }
     }
 
     public static class City extends RequestBean {
+        @QueryField
+        private String city = "深圳";
+
+        @QueryField
+        private String key = "b06e0a9a06024ea0b09c4053b905b508";
+
         public City() {
             super();
             method = "search";
-        }
-
-        @Override
-        protected void initQueryMap() {
-            queryMap.put("city", "深圳");
-            queryMap.put("key", "b06e0a9a06024ea0b09c4053b905b508");
-        }
-
-        @Override
-        protected void initHeadsMap() {
-
         }
     }
 
