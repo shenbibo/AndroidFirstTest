@@ -16,13 +16,23 @@ public interface BasicService {
 
     /** 抽象方法 */
     @GET
-    Observable<ResponseBody> doGet(@Url String method,
-                                   @HeaderMap Map<String, String> headerMap,
-                                   @QueryMap Map<String, String> queryMap);
+    Observable<ResponseBody> get(@Url String method,
+                                 @HeaderMap Map<String, String> headerMap,
+                                 @QueryMap Map<String, String> queryMap);
+
+    /**
+     * 当设置了body时，form无效，multipart无效，
+     * 另外如果Body对象是RequestBody或其子类会被默认的BuiltInConverters转换器消耗
+     */
+
+    @POST
+    Observable<ResponseBody> postBody(@Url String method,
+                                      @HeaderMap Map<String, String> headerMap,
+                                      @Body RequestBean requestBean);
 
     @FormUrlEncoded
     @POST
-    Observable<ResponseBody> doPost(@Url String method,
-                                    @HeaderMap Map<String, String> headerMap,
-                                    @FieldMap Map<String, String> formFieldMap);
+    Observable<ResponseBody> postForm(@Url String method,
+                                      @HeaderMap Map<String, String> headerMap,
+                                      @FieldMap Map<String, String> formFieldMap);
 }
