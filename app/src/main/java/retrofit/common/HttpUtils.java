@@ -1,4 +1,4 @@
-package retrofit;
+package retrofit.common;
 
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
@@ -21,10 +21,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.*;
-import retrofit.annotation.FormField;
-import retrofit.annotation.HeaderField;
-import retrofit.annotation.IgnoreField;
-import retrofit.annotation.QueryField;
+import retrofit.common.annotation.FormField;
+import retrofit.common.annotation.HeaderField;
+import retrofit.common.annotation.IgnoreField;
+import retrofit.common.annotation.QueryField;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 

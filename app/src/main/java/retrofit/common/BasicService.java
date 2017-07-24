@@ -1,4 +1,4 @@
-package retrofit;
+package retrofit.common;
 
 import java.util.Map;
 

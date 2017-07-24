@@ -1,4 +1,4 @@
-package retrofit;
+package retrofit.test.weather;
 
 /**
  * [一句话描述类的作用]

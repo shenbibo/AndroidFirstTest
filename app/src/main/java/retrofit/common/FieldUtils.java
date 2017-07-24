@@ -1,4 +1,4 @@
-package retrofit;
+package retrofit.common;
 
 import com.sky.slog.Slog;
 
@@ -6,9 +6,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import retrofit.annotation.FormField;
-import retrofit.annotation.HeaderField;
-import retrofit.annotation.QueryField;
+import retrofit.common.annotation.FormField;
+import retrofit.common.annotation.HeaderField;
+import retrofit.common.annotation.QueryField;
 
 /**
  * 字段获取工具类

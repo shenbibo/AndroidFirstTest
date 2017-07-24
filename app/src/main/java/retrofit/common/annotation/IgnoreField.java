@@ -1,4 +1,4 @@
-package retrofit.annotation;
+package retrofit.common.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

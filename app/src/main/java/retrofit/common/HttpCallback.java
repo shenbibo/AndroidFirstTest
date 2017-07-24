@@ -1,4 +1,4 @@
-package retrofit;
+package retrofit.common;
 
 import io.reactivex.disposables.Disposable;
 

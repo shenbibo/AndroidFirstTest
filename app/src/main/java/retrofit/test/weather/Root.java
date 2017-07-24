@@ -1,4 +1,4 @@
-package retrofit;
+package retrofit.test.weather;
 
 import java.util.List;
 

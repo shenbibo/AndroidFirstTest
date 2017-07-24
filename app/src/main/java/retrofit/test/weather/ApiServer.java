@@ -1,10 +1,8 @@
-package retrofit;
+package retrofit.test.weather;
 
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
 import retrofit2.http.*;
-
-import static android.R.attr.value;
 
 /**
  * [测试器]

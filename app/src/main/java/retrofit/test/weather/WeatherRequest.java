@@ -1,26 +1,22 @@
-package retrofit;
+package retrofit.test.weather;
 
-import android.content.pm.ApplicationInfo;
-
-import com.example.androidfirsttest.R;
 import com.google.gson.Gson;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import com.sky.slog.Slog;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.*;
-import retrofit.annotation.IgnoreField;
-import retrofit.annotation.QueryField;
+import retrofit.common.HttpUtils;
+import retrofit.common.RequestBean;
+import retrofit.common.SimpleHttpCallback;
+import retrofit.common.annotation.QueryField;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -243,16 +239,20 @@ public class WeatherRequest {
 
     public static void getCityInfo4() {
         // 此处返回0，不会包含Object对象的参数
-        Slog.t(TAG).i("requestBean.getInterfaces = " + RequestBean.class.getInterfaces().length);
+        //        Slog.t(TAG).i("requestBean.getInterfaces = " + RequestBean.class.getInterfaces().length);
         RequestBean requestBean = new City();
-        HttpUtils.doGet(requestBean, new SimpleHttpCallback<Root>() {
+        HttpUtils.get(requestBean, new SimpleHttpCallback<Root>() {
             @Override
             public void onSuccess(Root root) {
                 Slog.t(TAG).i(root);
             }
+
+            @Override
+            public void onFailure(Throwable e) {
+                Slog.t(TAG).e(e);
+            }
         });
     }
-
 
     public static class TestInterceptor implements Interceptor {
         @Override
