@@ -10,6 +10,7 @@ import com.sky.slog.Slog;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -120,19 +121,19 @@ public class HttpUtils {
 
     private static Observable<ResponseBody> createGetObservable(RequestBean requestBean) {
         return getService().get(requestBean.getMethod(),
-                                FieldUtils.parseFields(requestBean, HeaderField.class),
+                                requestBean.getHeaders(),
                                 FieldUtils.parseFields(requestBean, QueryField.class));
     }
 
     private static Observable<ResponseBody> createPostBodyObservable(RequestBean requestBean) {
         return getService().postBody(requestBean.getMethod(),
-                                     FieldUtils.parseFields(requestBean, HeaderField.class),
+                                     requestBean.getHeaders(),
                                      requestBean);
     }
 
     private static Observable<ResponseBody> createPostFormObservable(RequestBean requestBean) {
         return getService().postForm(requestBean.getMethod(),
-                                     FieldUtils.parseFields(requestBean, HeaderField.class),
+                                     requestBean.getHeaders(),
                                      FieldUtils.parseFields(requestBean, FormField.class));
     }
 
@@ -175,8 +176,16 @@ public class HttpUtils {
         private static final List<Class<? extends Annotation>> EXCLUDE_ANNOTATIONS =
                 Arrays.asList(IgnoreField.class, FormField.class, HeaderField.class, QueryField.class);
 
+        private static final List<String> EXCLUDE_FIELD_NAME =
+                Arrays.asList("method");
+
         @Override
         public boolean shouldSkipField(FieldAttributes f) {
+            // 忽略指定字段名称的字段
+            if(EXCLUDE_FIELD_NAME.contains(f.getName())){
+                return true;
+            }
+
             Collection<? extends Annotation> annotations = f.getAnnotations();
             for (Annotation annotation : annotations) {
                 if (EXCLUDE_ANNOTATIONS.contains(annotation.getClass())) {
@@ -204,54 +213,4 @@ public class HttpUtils {
     //                  .subscribe();
     //    }
 
-    //    public static <T> void get(RequestBean requestBean, HttpCallback<T> httpCallback) {
-    //        Observable<ResponseBody> observable1 = createGetObservable(requestBean);
-    //        //        Slog.t(TAG).i("observable1.class = " + observable1.getClass() + ", paramter = " +
-    //        // observable1.getClass()
-    //        // .getTypeParameters()[0].getName());
-    //        // 注意只有当前对象确实是一个接口的class的时isInterface()才返回true，其他即使是实现接口的匿名类isInterface()方法也返回false
-    //        Slog.t(TAG).i("HttpCallback.CLASS IS interface = " + HttpCallback.class.isInterface()); // 返回true
-    //
-    //        Slog.t(TAG).i(", isInteface = " + httpCallback.getClass().isInterface()
-    //                              + ", name = " + httpCallback.getClass().getName());  // 返回false
-    //        Class<?> beanClass;
-    //        beanClass = (Class<?>) ((ParameterizedType) (httpCallback.getClass().getGenericSuperclass()))
-    // .getActualTypeArguments()[0];
-    //
-    //        // 获取泛型的实际参数
-    //        Slog.t(TAG).i("beanClass = " + beanClass.getName());
-    //        // 此处在运行时强制类型转换为什么不报错，
-    //        // 是不是因为编程泛型时，发生了类型擦除，导致最终可以
-    //        //        ArrayList<String> list = new ArrayList<>();
-    //        //        ArrayList<MyPesponse> integers = new ArrayList<>();
-    //        //        list = (ArrayList<String>)integers;
-    //
-    //        observable1.subscribeOn(Schedulers.io()).map(responseBody -> {
-    //            Gson gson = new Gson();
-    //            return (T) (gson.fromJson(responseBody.string(), beanClass));
-    //        }).observeOn(AndroidSchedulers.mainThread()).subscribe(new Observer<T>() {
-    //            @Override
-    //            public void onSubscribe(Disposable d) {
-    //                Slog.t(TAG).s(false).th(true).i("onSubscribe called!!");
-    //                Observable.fromArray(d)
-    //                          .observeOn(AndroidSchedulers.mainThread())
-    //                          .subscribe(httpCallback::onStart);
-    //            }
-    //
-    //            @Override
-    //            public void onNext(T t) {
-    //                httpCallback.onSuccess(t);
-    //            }
-    //
-    //            @Override
-    //            public void onError(Throwable e) {
-    //                httpCallback.onFailure(e);
-    //            }
-    //
-    //            @Override
-    //            public void onComplete() {
-    //
-    //            }
-    //        });
-    //    }
 }

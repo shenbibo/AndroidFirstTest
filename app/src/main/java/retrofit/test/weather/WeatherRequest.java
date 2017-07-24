@@ -5,6 +5,7 @@ import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import com.sky.slog.Slog;
 
 import java.io.IOException;
+import java.util.IdentityHashMap;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -278,6 +279,12 @@ public class WeatherRequest {
         public City() {
             super();
             method = "search";
+        }
+
+        @Override
+        protected void modifyHeaders(IdentityHashMap<String, String> headerMap) {
+            headerMap.put(new String("1234"), "value1");
+            headerMap.put(new String("1234"), "value2");
         }
     }
 
