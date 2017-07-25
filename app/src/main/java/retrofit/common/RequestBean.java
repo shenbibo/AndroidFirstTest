@@ -10,7 +10,7 @@ import java.util.IdentityHashMap;
 public abstract class RequestBean {
     protected String method;
 
-    protected IdentityHashMap<String, String> headerMap = new IdentityHashMap<>();
+    protected final IdentityHashMap<String, String> headerMap = new IdentityHashMap<>();
 
     public RequestBean(){
         modifyHeaders(headerMap);

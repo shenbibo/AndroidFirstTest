@@ -1,7 +1,5 @@
 package retrofit.common;
 
-import io.reactivex.disposables.Disposable;
-
 /**
  * [一句话描述类的作用]
  * [详述类的功能。]
@@ -9,7 +7,7 @@ import io.reactivex.disposables.Disposable;
  */
 
 public interface HttpCallback<T> {
-    void onStart(Disposable disposable);
+    void onStart(Cancellable cancellable);
 
     void onSuccess(T t);
 

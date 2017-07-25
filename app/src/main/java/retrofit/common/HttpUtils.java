@@ -4,13 +4,13 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.jakewharton.retrofit2.adapter.rxjava2.HttpException;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import com.sky.slog.Slog;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -37,7 +37,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HttpUtils {
     public static final String TAG = "RetrofitBasicTest";
-    public static final String BASE_URL = "https://api.heweather.com/v5/";
 
     public static void setBaseUrl(String baseUrl) {
         retrofit = retrofit.newBuilder().baseUrl(baseUrl).build();
@@ -47,15 +46,18 @@ public class HttpUtils {
         HttpUtils.retrofit = retrofit;
     }
 
-    private static OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
-                                                                 .addInterceptor(new TestInterceptor())
-                                                                 .connectTimeout(60, TimeUnit.SECONDS)
-                                                                 .readTimeout(60, TimeUnit.SECONDS)
-                                                                 .build();
+    public static void setOkHttpClient(OkHttpClient okHttpClient) {
+        retrofit = retrofit.newBuilder().client(okHttpClient).build();
+    }
+
+    private static final OkHttpClient OK_HTTP_CLIENT = new OkHttpClient().newBuilder()
+                                                                         .addInterceptor(new TestInterceptor())
+                                                                         .connectTimeout(30, TimeUnit.SECONDS)
+                                                                         .readTimeout(30, TimeUnit.SECONDS)
+                                                                         .build();
 
 
-    private static Retrofit retrofit = new Retrofit.Builder().baseUrl(BASE_URL)
-                                                             .client(okHttpClient)
+    private static Retrofit retrofit = new Retrofit.Builder().client(OK_HTTP_CLIENT)
                                                              .addConverterFactory(GsonConverterFactory.create(createGson()))
                                                              .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                                                              .build();
@@ -76,13 +78,13 @@ public class HttpUtils {
         // 直接启动子线程执行
         Observable.create(e -> {
             Class<?> beanClass = getHttpCallbackParamsType(httpCallback);
-            requestAndResponse(httpCallback, observable, beanClass);
+            requestAndParseResponse(httpCallback, observable, beanClass);
         }).subscribeOn(Schedulers.io()).subscribe();
     }
 
-    private static <T> void requestAndResponse(final HttpCallback<T> httpCallback,
-                                               Observable<ResponseBody> getObservable,
-                                               Class<?> beanClass) {
+    private static <T> void requestAndParseResponse(final HttpCallback<T> httpCallback,
+                                                    Observable<ResponseBody> getObservable,
+                                                    Class<?> beanClass) {
         getObservable.subscribeOn(Schedulers.io())
                      .unsubscribeOn(Schedulers.io())
                      .map(responseBody -> {
@@ -99,7 +101,7 @@ public class HttpUtils {
                      .subscribe(new Observer<T>() {
                          @Override
                          public void onSubscribe(Disposable d) {
-                             httpCallback.onStart(d);
+                             httpCallback.onStart(new RxCancellable(d));
                          }
 
                          @Override
@@ -109,12 +111,15 @@ public class HttpUtils {
 
                          @Override
                          public void onError(Throwable e) {
+                             if (e instanceof HttpException) {
+                                 e = new RxHttpException((HttpException) e);
+                             }
                              httpCallback.onFailure(e);
                          }
 
                          @Override
                          public void onComplete() {
-                            Slog.t(TAG).i("request complete");
+                             Slog.t(TAG).i("request complete");
                          }
                      });
     }
@@ -155,7 +160,7 @@ public class HttpUtils {
             Request request = chain.request();
             Slog.t(TAG).i(request.toString());
             Slog.t(TAG).i(request.headers().toString());
-            if(request.body() != null){
+            if (request.body() != null) {
                 Slog.t(TAG).i(request.body().toString());
                 if (request.body() instanceof FormBody) {
                     Slog.t(TAG).i("isFormBody");
@@ -169,6 +174,7 @@ public class HttpUtils {
     }
 
     private static Gson createGson() {
+        Gson gson = new Gson();
         return new GsonBuilder().setExclusionStrategies(new GsonExclusionStrategy()).create();
     }
 
@@ -177,12 +183,12 @@ public class HttpUtils {
                 Arrays.asList(IgnoreField.class, FormField.class, HeaderField.class, QueryField.class);
 
         private static final List<String> EXCLUDE_FIELD_NAME =
-                Arrays.asList("method");
+                Arrays.asList("method", "headerMap");
 
         @Override
         public boolean shouldSkipField(FieldAttributes f) {
             // 忽略指定字段名称的字段
-            if(EXCLUDE_FIELD_NAME.contains(f.getName())){
+            if (EXCLUDE_FIELD_NAME.contains(f.getName())) {
                 return true;
             }
 
@@ -208,7 +214,7 @@ public class HttpUtils {
     //    private static <T> void startOnMainThread(HttpCallback<T> httpCallback,
     //    Observable<ResponseBody> getObservable, Class<?> beanClass) {
     //        // 强制切换到主线程发起，保证onSubscribe回调也在主线程运行
-    //        Observable.create(e -> requestAndResponse(httpCallback, getObservable, beanClass))
+    //        Observable.create(e -> requestAndParseResponse(httpCallback, getObservable, beanClass))
     //                  .subscribeOn(AndroidSchedulers.mainThread())
     //                  .subscribe();
     //    }
