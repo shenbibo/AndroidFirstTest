@@ -1,5 +1,7 @@
 package retrofit.common;
 
+import android.support.annotation.Nullable;
+
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
@@ -30,48 +32,66 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * [一句话描述类的作用]
+ * http请求工具类
  * [详述类的功能。]
  * Created by sky on 2017/7/4.
  */
-
+// TODO 如何解决某些请求需要不同的超时的情况，是否考虑使用Build模式来解决
 public class HttpUtils {
     public static final String TAG = "RetrofitBasicTest";
+    private static final HttpRequestImpl REQUEST = new HttpRequestImpl();
 
-    public static void setBaseUrl(String baseUrl) {
-        retrofit = retrofit.newBuilder().baseUrl(baseUrl).build();
+    public static void init(String baseUrl) {
+        init(baseUrl, getDefaultOkHttpClient());
     }
 
-    public static void setRetrofit(Retrofit retrofit) {
-        HttpUtils.retrofit = retrofit;
+    public static void init(String baseUrl, @Nullable OkHttpClient okHttpClient) {
+        REQUEST.init(baseUrl, okHttpClient);
+    }
+
+    public static void setBaseUrl(String baseUrl) {
+        REQUEST.setBaseUrl(baseUrl);
     }
 
     public static void setOkHttpClient(OkHttpClient okHttpClient) {
-        retrofit = retrofit.newBuilder().client(okHttpClient).build();
+        REQUEST.setOkHttpClient(okHttpClient);
     }
 
-    private static final OkHttpClient OK_HTTP_CLIENT = new OkHttpClient().newBuilder()
-                                                                         .addInterceptor(new TestInterceptor())
-                                                                         .connectTimeout(30, TimeUnit.SECONDS)
-                                                                         .readTimeout(30, TimeUnit.SECONDS)
-                                                                         .build();
+    public static OkHttpClient.Builder getOkHttpBuilder() {
+        return REQUEST.getOkHttpBuilder();
+    }
 
-
-    private static Retrofit retrofit = new Retrofit.Builder().client(OK_HTTP_CLIENT)
-                                                             .addConverterFactory(GsonConverterFactory.create(createGson()))
-                                                             .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                                                             .build();
+    public static Retrofit.Builder getRetrofitBuilder() {
+        return REQUEST.getRetrofitBuilder();
+    }
 
     public static <T> void get(RequestBean requestBean, HttpCallback<T> httpCallback) {
-        request(createGetObservable(requestBean), httpCallback);
+        REQUEST.get(requestBean, httpCallback);
     }
 
     public static <T> void postBody(RequestBean requestBean, HttpCallback<T> httpCallback) {
-        request(createPostBodyObservable(requestBean), httpCallback);
+        REQUEST.postBody(requestBean, httpCallback);
     }
 
     public static <T> void postForm(RequestBean requestBean, HttpCallback<T> httpCallback) {
-        request(createPostFormObservable(requestBean), httpCallback);
+        REQUEST.postForm(requestBean, httpCallback);
+    }
+
+    private static OkHttpClient getDefaultOkHttpClient() {
+        return new OkHttpClient().newBuilder()
+                                 .addInterceptor(new TestInterceptor())
+                                 .connectTimeout(15, TimeUnit.SECONDS)
+                                 .readTimeout(15, TimeUnit.SECONDS)
+                                 .writeTimeout(15, TimeUnit.SECONDS)
+                                 .build();
+    }
+
+    private static Retrofit getDefaultRetrofit(String baseUrl, OkHttpClient okHttpClient) {
+        return new Retrofit.Builder().baseUrl(baseUrl)
+                                     .client(okHttpClient)
+                                     .addConverterFactory(GsonConverterFactory.create(createGson()))
+                                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                                     .build();
     }
 
     private static <T> void request(Observable<ResponseBody> observable, HttpCallback<T> httpCallback) {
@@ -94,6 +114,7 @@ public class HttpUtils {
                              return (T) responseBody;
                          }
 
+                         // TODO 后续需要根据contentType(MediaType)来区分使用什么来解析responseBody
                          Gson gson = new Gson();
                          return (T) (gson.fromJson(responseBody.string(), beanClass));
                      })
@@ -119,31 +140,9 @@ public class HttpUtils {
 
                          @Override
                          public void onComplete() {
-                             Slog.t(TAG).i("request complete");
+                             Slog.t(TAG).i("REQUEST complete");
                          }
                      });
-    }
-
-    private static Observable<ResponseBody> createGetObservable(RequestBean requestBean) {
-        return getService().get(requestBean.getMethod(),
-                                requestBean.getHeaders(),
-                                FieldUtils.parseFields(requestBean, QueryField.class));
-    }
-
-    private static Observable<ResponseBody> createPostBodyObservable(RequestBean requestBean) {
-        return getService().postBody(requestBean.getMethod(),
-                                     requestBean.getHeaders(),
-                                     requestBean);
-    }
-
-    private static Observable<ResponseBody> createPostFormObservable(RequestBean requestBean) {
-        return getService().postForm(requestBean.getMethod(),
-                                     requestBean.getHeaders(),
-                                     FieldUtils.parseFields(requestBean, FormField.class));
-    }
-
-    private static BasicService getService() {
-        return retrofit.create(BasicService.class);
     }
 
     private static <T> Class<?> getHttpCallbackParamsType(HttpCallback<T> httpCallback) {
@@ -174,7 +173,6 @@ public class HttpUtils {
     }
 
     private static Gson createGson() {
-        Gson gson = new Gson();
         return new GsonBuilder().setExclusionStrategies(new GsonExclusionStrategy()).create();
     }
 
@@ -208,6 +206,124 @@ public class HttpUtils {
         }
     }
 
+    public static class HttpRequestImpl implements HttpRequest {
+        private String baseUrl;
+        private Retrofit retrofit;
+        private OkHttpClient okHttpClient;
+
+        HttpRequestImpl() {
+        }
+
+        HttpRequestImpl(Builder builder) {
+            okHttpClient = builder.okHttpBuilder != null ? builder.okHttpBuilder.build() : null;
+
+            retrofit = okHttpClient != null
+                    ? builder.retrofitBuilder.client(okHttpClient).build()
+                    : builder.retrofitBuilder.build();
+        }
+
+        @Override
+        public <T> void get(RequestBean requestBean, HttpCallback<T> httpCallback) {
+            request(createGetObservable(requestBean), httpCallback);
+        }
+
+        @Override
+        public <T> void postBody(RequestBean requestBean, HttpCallback<T> httpCallback) {
+            request(createPostBodyObservable(requestBean), httpCallback);
+        }
+
+        @Override
+        public <T> void postForm(RequestBean requestBean, HttpCallback<T> httpCallback) {
+            request(createPostFormObservable(requestBean), httpCallback);
+        }
+
+        void init(String baseUrl, OkHttpClient okHttpClient) {
+            this.baseUrl = baseUrl;
+            this.okHttpClient = okHttpClient == null ? getDefaultOkHttpClient() : okHttpClient;
+            this.retrofit = getDefaultRetrofit(this.baseUrl, this.okHttpClient);
+        }
+
+        void setBaseUrl(String baseUrl) {
+            this.baseUrl = baseUrl;
+            retrofit = retrofit.newBuilder().baseUrl(baseUrl).build();
+        }
+
+        void setOkHttpClient(OkHttpClient okHttpClient) {
+            this.okHttpClient = okHttpClient;
+            retrofit = retrofit.newBuilder().client(okHttpClient).build();
+        }
+
+        OkHttpClient.Builder getOkHttpBuilder() {
+            return okHttpClient.newBuilder();
+        }
+
+        Retrofit.Builder getRetrofitBuilder() {
+            return retrofit.newBuilder();
+        }
+
+        Builder newBuilder() {
+            return new Builder(this);
+        }
+
+        private Observable<ResponseBody> createGetObservable(RequestBean requestBean) {
+            return getService().get(requestBean.getMethod(),
+                                    requestBean.getHeaders(),
+                                    FieldUtils.parseFields(requestBean, QueryField.class));
+        }
+
+        private Observable<ResponseBody> createPostBodyObservable(RequestBean requestBean) {
+            return getService().postBody(requestBean.getMethod(),
+                                         requestBean.getHeaders(),
+                                         requestBean);
+        }
+
+        private Observable<ResponseBody> createPostFormObservable(RequestBean requestBean) {
+            return getService().postForm(requestBean.getMethod(),
+                                         requestBean.getHeaders(),
+                                         FieldUtils.parseFields(requestBean, FormField.class));
+        }
+
+        private BasicService getService() {
+            return retrofit.create(BasicService.class);
+        }
+    }
+
+
+    public static Builder newBuilder() {
+        return REQUEST.newBuilder();
+    }
+
+    public static class Builder {
+        private OkHttpClient.Builder okHttpBuilder;
+        private Retrofit.Builder retrofitBuilder;
+
+        Builder(HttpRequestImpl httpRequest) {
+//            okHttpBuilder = httpRequest.okHttpClient.newBuilder();
+            retrofitBuilder = httpRequest.retrofit.newBuilder();
+        }
+
+        /**
+         * 要设置的builder如果需要使用全局的okhttp的配置，则可以从HttpUtils.getOkHttpBuilder获取之后修改的
+         * 如果不需要，也可以使用自定义生成的。
+         * // TODO 使用自定义的，这样就可能导致一些公共的设置项没有了，比如缓存，公共的header等。
+         */
+        public Builder okHttpBuilder(OkHttpClient.Builder builder) {
+            okHttpBuilder = builder;
+            return this;
+        }
+
+        /**
+         * 要设置的builder必要来自HttpUtils.getRetrofitBuilder获取之后修改的，否则可能出错
+         */
+        public Builder retrofitBuilder(Retrofit.Builder builder) {
+            retrofitBuilder = builder;
+            return this;
+        }
+
+        public HttpRequest create() {
+            return new HttpRequestImpl(this);
+        }
+    }
 
     //    // TODO 后面考虑使用统一的一个工具类来管理取消网络请求操作，如RxLifecycle框架
     //    // TODO 或者将onStart方法的调用不关注其是在哪个线程调用的，曲调切换到主线程的步骤
@@ -218,5 +334,4 @@ public class HttpUtils {
     //                  .subscribeOn(AndroidSchedulers.mainThread())
     //                  .subscribe();
     //    }
-
 }

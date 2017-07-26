@@ -1,6 +1,8 @@
 package com.example.androidfirsttest;
 
 import download.test.utils.ViewResgiterUtils;
+import retrofit.common.HttpUtils;
+import retrofit.test.weather.WeatherRequest;
 
 import android.app.Application;
 
@@ -32,6 +34,8 @@ public class MyApplication extends Application {
         super.onCreate();
 
         Slog.init(new LogcatTree()).simpleMode(true).prefixTag("AF");
+
+        HttpUtils.init(WeatherRequest.BASE_URL);
 
         ViewResgiterUtils.init();
     }
