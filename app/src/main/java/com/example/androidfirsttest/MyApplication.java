@@ -33,7 +33,7 @@ public class MyApplication extends Application {
 
         super.onCreate();
 
-        Slog.init(new LogcatTree()).simpleMode(true).prefixTag("AF");
+        Slog.init(new LogcatTree()).simpleMode(true).defaultTag("AF");
 
         HttpUtils.init(WeatherRequest.BASE_URL);
 
