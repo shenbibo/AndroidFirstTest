@@ -11,6 +11,7 @@ import java.io.StringWriter;
 
 import com.gc.test.view.GCtestAtivity;
 import com.handler.delay.test.HandlerDelayTestActivity;
+import com.scrollviewtest.ScrollViewTestActivity;
 
 import android.support.v7.app.ActionBarActivity;
 import android.content.Intent;
@@ -187,8 +188,11 @@ public class MainActivity extends ActionBarActivity {
 //                  MainActivity.this.startActivity(i);
 
                 // Rxjava测试界面
-                  Intent i = new Intent(MainActivity.this, RxJavaTestActivity.class);
-                  MainActivity.this.startActivity(i);
+//                  Intent i = new Intent(MainActivity.this, RxJavaTestActivity.class);
+//                  MainActivity.this.startActivity(i);
+
+                Intent i = new Intent(MainActivity.this, ScrollViewTestActivity.class);
+                MainActivity.this.startActivity(i);
 
             }
         });
