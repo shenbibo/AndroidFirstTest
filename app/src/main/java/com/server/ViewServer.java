@@ -57,24 +57,24 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * permission.</p>
  * <p/>
  * <p>The recommended way to use this API is to register activities when
- * they are created, and to unregister them when they get destroyed:</p>
+ * they are created, and to unregister them when they doGet destroyed:</p>
  * <p/>
  * <pre>
  * public class MyActivity extends Activity {
  *     public void onCreate(Bundle savedInstanceState) {
  *         super.onCreate(savedInstanceState);
  *         // Set content view, etc.
- *         ViewServer.get(this).addWindow(this);
+ *         ViewServer.doGet(this).addWindow(this);
  *     }
  *
  *     public void onDestroy() {
  *         super.onDestroy();
- *         ViewServer.get(this).removeWindow(this);
+ *         ViewServer.doGet(this).removeWindow(this);
  *     }
  *
  *     public void onResume() {
  *         super.onResume();
- *         ViewServer.get(this).setFocusedWindow(this);
+ *         ViewServer.doGet(this).setFocusedWindow(this);
  *     }
  * }
  * </pre>
@@ -89,19 +89,19 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *         super.onCreate();
  *         View decorView = getWindow().getWindow().getDecorView();
  *         String name = "MyInputMethodService";
- *         ViewServer.get(this).addWindow(decorView, name);
+ *         ViewServer.doGet(this).addWindow(decorView, name);
  *     }
  *
  *     public void onDestroy() {
  *         super.onDestroy();
  *         View decorView = getWindow().getWindow().getDecorView();
- *         ViewServer.get(this).removeWindow(decorView);
+ *         ViewServer.doGet(this).removeWindow(decorView);
  *     }
  *
  *     public void onStartInput(EditorInfo attribute, boolean restarting) {
  *         super.onStartInput(attribute, restarting);
  *         View decorView = getWindow().getWindow().getDecorView();
- *         ViewServer.get(this).setFocusedWindow(decorView);
+ *         ViewServer.doGet(this).setFocusedWindow(decorView);
  *     }
  * }
  * </pre>

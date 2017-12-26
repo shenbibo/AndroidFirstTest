@@ -88,7 +88,7 @@ public class NetworkUtils
         }
         catch(Exception e)
         {
-            Log.d(TAG, "get network status error return false", e);
+            Log.d(TAG, "doGet network status error return false", e);
         }
         return false;
     }

@@ -50,7 +50,7 @@ public class Teacher implements Runnable
         catch (InterruptedException e)
         {
             //counter.countDown();
-            Log.d(DelayQueueTest.TAG, "exam time is end , get the student's test paper now !!!!!!!!!!");
+            Log.d(DelayQueueTest.TAG, "exam time is end , doGet the student's test paper now !!!!!!!!!!");
         }
         
     }

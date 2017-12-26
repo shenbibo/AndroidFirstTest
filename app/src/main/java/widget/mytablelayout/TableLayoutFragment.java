@@ -40,18 +40,18 @@ public class TableLayoutFragment extends Fragment implements MyTableLayout.KeyEv
 //        tableLayout.setFocusableInTouchMode(true);
 //        if(tableLayout.requestFocus())
 //        {
-//            Log.d(TAG, "tableLayout get the focus");
+//            Log.d(TAG, "tableLayout doGet the focus");
 //        }
 //        else
 //        {
-//            Log.d(TAG, "tableLayout not get the focus");
+//            Log.d(TAG, "tableLayout not doGet the focus");
 //        }
 //
 //
 //        tableLayout.setOnKeyListener(new View.OnKeyListener() {
 //            @Override
 //            public boolean onKey(View v, int keyCode, KeyEvent event) {
-//                Log.d(TAG, "get the key event");
+//                Log.d(TAG, "doGet the key event");
 //                if((keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
 //                        && event.getAction() == KeyEvent.ACTION_DOWN)
 //                {
