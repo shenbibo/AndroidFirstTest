@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.sky.slog.Slog;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -12,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -24,6 +26,11 @@ import io.reactivex.schedulers.Schedulers;
 @RunWith(AndroidJUnit4.class)
 public class RxJavaBaseTest2 {
     private static final String TAG = "RxJavaBaseTest2";
+
+    @BeforeClass
+    public static void init(){
+
+    }
 
     /**
      * 测试使用完整的Observer类
@@ -62,6 +69,45 @@ public class RxJavaBaseTest2 {
         };
 
         stringObservable.subscribeOn(Schedulers.io()).subscribe(stringObserver1);
+    }
+
+    static ObservableEmitter<String> emitter2;
+    /**
+     * 测试使用完整的Observer类
+     */
+    @Test
+    public void testObserverWithUserEmitterOutsider() {
+        Observable<String> stringObservable = Observable.create(emitter -> {
+              emitter2 = emitter;
+        });
+
+        Observer<String> stringObserver1 = new Observer<String>() {
+            // 该方法一定在onNext之前调用，但是并不一定在同一个线程，具体见ObservableSubscribeOn.subscribeActual方法
+            // 该方法的调用绝大多数在执行subscribe方法的线程中调用
+            @Override
+            public void onSubscribe(Disposable d) {
+                Log.i(TAG, "full stringObserver1 called");
+            }
+
+            @Override
+            public void onNext(String s) {
+                Log.i(TAG, s);
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.i(TAG, "full stringObserver1 onError called");
+            }
+
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "stringObserver1 onComplete called");
+            }
+        };
+
+        stringObservable.subscribe(stringObserver1);
+
+        emitter2.onNext("testEmmitterOutside");
     }
 
     /**
