@@ -23,7 +23,12 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.*;
+import okhttp3.FormBody;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import retrofit.common.annotation.FormField;
 import retrofit.common.annotation.HeaderField;
 import retrofit.common.annotation.IgnoreField;
@@ -103,15 +108,21 @@ public class HttpUtils {
     }
 
     private static <T> void requestAndParseResponse(final HttpCallback<T> httpCallback,
-                                                    Observable<ResponseBody> getObservable,
-                                                    Class<?> beanClass) {
+        Observable<ResponseBody> getObservable,
+        Class<?> beanClass) {
         getObservable.subscribeOn(Schedulers.io())
                      .unsubscribeOn(Schedulers.io())
                      .map(responseBody -> {
                          Slog.t(TAG).d("have receiver the response body");
+                         Slog.t(TAG).d("beanclass = " + beanClass.getSimpleName() + ", rClass = " + responseBody
+                             .getClass().getSimpleName());
                          if (beanClass.isAssignableFrom(responseBody.getClass())) {
                              //noinspection unchecked
                              return (T) responseBody;
+                         }
+
+                         if (beanClass == String.class) {
+                             return (T) responseBody.string();
                          }
 
                          // TODO 后续需要根据contentType(MediaType)来区分使用什么来解析responseBody
@@ -178,10 +189,10 @@ public class HttpUtils {
 
     private static class GsonExclusionStrategy implements ExclusionStrategy {
         private static final List<Class<? extends Annotation>> EXCLUDE_ANNOTATIONS =
-                Arrays.asList(IgnoreField.class, FormField.class, HeaderField.class, QueryField.class);
+            Arrays.asList(IgnoreField.class, FormField.class, HeaderField.class, QueryField.class);
 
         private static final List<String> EXCLUDE_FIELD_NAME =
-                Arrays.asList("method", "headerMap");
+            Arrays.asList("method", "headerMap");
 
         @Override
         public boolean shouldSkipField(FieldAttributes f) {
@@ -218,8 +229,8 @@ public class HttpUtils {
             okHttpClient = builder.okHttpBuilder != null ? builder.okHttpBuilder.build() : null;
 
             retrofit = okHttpClient != null
-                    ? builder.retrofitBuilder.client(okHttpClient).build()
-                    : builder.retrofitBuilder.build();
+                ? builder.retrofitBuilder.client(okHttpClient).build()
+                : builder.retrofitBuilder.build();
         }
 
         @Override
@@ -267,20 +278,20 @@ public class HttpUtils {
 
         private Observable<ResponseBody> createGetObservable(RequestBean requestBean) {
             return getService().get(requestBean.getMethod(),
-                                    requestBean.getHeaders(),
-                                    FieldUtils.parseFields(requestBean, QueryField.class));
+                requestBean.getHeaders(),
+                FieldUtils.parseFields(requestBean, QueryField.class));
         }
 
         private Observable<ResponseBody> createPostBodyObservable(RequestBean requestBean) {
             return getService().postBody(requestBean.getMethod(),
-                                         requestBean.getHeaders(),
-                                         requestBean);
+                requestBean.getHeaders(),
+                requestBean);
         }
 
         private Observable<ResponseBody> createPostFormObservable(RequestBean requestBean) {
             return getService().postForm(requestBean.getMethod(),
-                                         requestBean.getHeaders(),
-                                         FieldUtils.parseFields(requestBean, FormField.class));
+                requestBean.getHeaders(),
+                FieldUtils.parseFields(requestBean, FormField.class));
         }
 
         private BasicService getService() {
@@ -298,7 +309,7 @@ public class HttpUtils {
         private Retrofit.Builder retrofitBuilder;
 
         Builder(HttpRequestImpl httpRequest) {
-//            okHttpBuilder = httpRequest.okHttpClient.newBuilder();
+            //            okHttpBuilder = httpRequest.okHttpClient.newBuilder();
             retrofitBuilder = httpRequest.retrofit.newBuilder();
         }
 
