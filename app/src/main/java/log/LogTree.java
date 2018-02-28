@@ -21,30 +21,6 @@ public abstract class LogTree {
         return logData.priority >= this.priority;
     }
 
-    //    final void prepareLog(int priority, String tag, String msg, Throwable tr) {
-    //        if (!isLoggable(priority, tag)) {
-    //            return;
-    //        }
-    //
-    //        handleMsg(priority, tag, msg, tr);
-    //    }
-    //
-    //    final void prepareLog(String logPrefix, int priority, String tag, String msg, Throwable tr){
-    //        if (!isLoggable(priority, tag)) {
-    //            return;
-    //        }
-    //
-    //        handleMsg(logPrefix, priority, tag, msg, tr);
-    //    }
-
-    //    final void prepareLog(long time, int priority, String tag, String msg, Throwable tr){
-    //        if (!isLoggable(priority, tag)) {
-    //            return;
-    //        }
-    //
-    //        handleMsg(time, priority, tag, msg, tr);
-    //    }
-
     final void prepareLog(final LogData logData) {
         if (!isLoggable(logData)) {
             return;
@@ -52,15 +28,6 @@ public abstract class LogTree {
 
         handleMsg(logData);
     }
-
-    //    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {}
-    //
-    //    /**
-    //     * @param logPrefix 日志前缀
-    //     * */
-    //    protected void handleMsg(String logPrefix, int priority, String tag, String msg, Throwable tr){}
-
-    //    protected void handleMsg(long time, int priority, String tag, String msg, Throwable tr){}
 
     protected void handleMsg(final LogData logData) {}
 

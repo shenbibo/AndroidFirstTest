@@ -1,6 +1,8 @@
 package log;
 
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -42,8 +44,6 @@ public class FileTree extends LogTree {
     private final long MAX_FILE_LENGTH;
     private long fileLength = 0;
 
-    private final long MAX_MEMORY_LOG_LENGTH;
-    private AtomicLong memoryLogLength = new AtomicLong(0);
     private final int MAX_MSG_COUNT;
     private AtomicInteger msgCount = new AtomicInteger(0);
 
@@ -66,54 +66,11 @@ public class FileTree extends LogTree {
 
         this.logFileParam = logFileParam;
         MAX_FILE_LENGTH = logFileParam.maxFileLength;
-        MAX_MEMORY_LOG_LENGTH = logFileParam.maxMemoryLogLength;
         MAX_MSG_COUNT = logFileParam.maxMsgCachedCount;
         createDirIfNotExists();
 
         new MsgWriteThread().start();
     }
-
-    //    /**
-    //     * 2018-02-26 16:53:25.123 D/Tag(pid-tid)：msg + '\n' + LogHelper.getStackTraceString(Throwable tr)
-    //     * // TODO 需要测试这一步对时间消耗和包装一个对象分别赋值日志数据，到子线程中再进行组装
-    //     */
-    //    @Override
-    //    public void handleMsg(String logPrefix, int priority, String tag, String msg, Throwable tr) {
-    //        long starTime1 = System.nanoTime();
-    //        // 如果缓存的长度已经大于最大长度则直接忽略掉这条日志
-    //        if (memoryLogLength.get() > MAX_MEMORY_LOG_LENGTH) {
-    //            System.out.println("memory cache out of range, drop this msg = " + msg);
-    //            return;
-    //        }
-    //
-    //        StringBuilder msgBuilder = new StringBuilder(256);
-    //
-    //        msgBuilder.append(logPrefix)
-    //                  .append(msg)
-    //                  .append(LogHelper.LINE_BREAK);
-    //
-    //        if (tr != null) {
-    //            msgBuilder.append(LogHelper.getStackTraceString(tr));
-    //            msgBuilder.append(LogHelper.LINE_BREAK);
-    //        }
-    //        long finishTime1 = System.nanoTime();
-    //        Log.i("TimeTest", "stringBuilder time = " + (finishTime1 - starTime1) / 1000 + "us");
-    //
-    //        long starTime2 = System.nanoTime();
-    //        String msgTemp = msgBuilder.toString();
-    //        memoryLogLength.getAndAdd(msgTemp.getBytes().length);
-    //        long finishTime2 = System.nanoTime();
-    //        Log.i("TimeTest", "toStringAndGetBytesTime time = " + (finishTime2 - starTime2) / 1000 + "us");
-    //
-    //        long starTime3 = System.nanoTime();
-    //        msgQueue.offer(msgTemp);
-    //        long finishTime3 = System.nanoTime();
-    //        Log.i("TimeTest", "msgQueue.offer time = " + (finishTime1 - starTime1) / 1000 + "us");
-    //        //        synchronized (LOCK) {
-    //        //            LOCK.notify();
-    //        //        }
-    //
-    //    }
 
     @Override
     protected void handleMsg(final LogData logData) {
@@ -129,9 +86,6 @@ public class FileTree extends LogTree {
     @Override
     protected void release() {
         releaseCount.set(0);
-        //        synchronized (LOCK) {
-        //            LOCK.notify();
-        //        }
         for (; ; ) {
             if (releaseCount.get() < 0) {
                 return;
@@ -178,23 +132,6 @@ public class FileTree extends LogTree {
         }
 
         private void pollMsgAndCheckFileLength() {
-            //                        String msg;
-            //                        byte[] msgBytes;
-            //                        while ((msg = msgQueue.poll()) != null) {
-            //                            msgBytes = msg.getBytes();
-            //                            long length = msgBytes.length;
-            //                            // 移除出一条日志就从内存缓存中减去该长度
-            //                            memoryLogLength.getAndAdd(-length);
-            //                            try {
-            //                                fos.write(msgBytes);
-            //                                fileLength += length;
-            //                                if (fileLength >= MAX_FILE_LENGTH) {
-            //                                    checkAndCreateCurWriteFile();
-            //                                }
-            //                            } catch (IOException exception) {
-            //                                exception.printStackTrace();
-            //                            }
-            //                        }
             LogData logData;
             byte[] msgBytes;
             while ((logData = msgQueue.poll()) != null) {
@@ -231,15 +168,6 @@ public class FileTree extends LogTree {
             if (releaseCount.get() <= 0) {
                 return;
             }
-
-            //            // 若没有要处理的日志则挂起该线程
-            //            synchronized (LOCK) {
-            //                try {
-            //                    LOCK.wait();
-            //                } catch (InterruptedException exception) {
-            //                    exception.printStackTrace();
-            //                }
-            //            }
 
             try {
                 Thread.sleep(10);
@@ -309,9 +237,6 @@ public class FileTree extends LogTree {
     }
 
     public static class LogFileParam {
-        /**
-         * this must end with File.sperator
-         */
         public String logFilePath;
         /**
          * include the logFilePath + fileName
@@ -319,7 +244,6 @@ public class FileTree extends LogTree {
         public String backupFile;
         public String curWriteFile;
         public long maxFileLength;
-        public long maxMemoryLogLength;
         public int maxMsgCachedCount;
     }
 }
