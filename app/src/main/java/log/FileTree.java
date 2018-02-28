@@ -20,24 +20,6 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author sky on 2018/2/26
  */
 public class FileTree extends LogTree {
-    //    /**
-    //     * 本地化日志文件每个最大字符数
-    //     */
-    //    private static final int MAX_LENGTH = 1024 * 1024;
-    //
-    //    /**
-    //     * 最大内存日志缓存大小
-    //     */
-    //
-    //    private static final String LOG_DIR =
-    //        Environment.getExternalStorageDirectory() + File.separator + "HstLogs";
-    //
-    //    private static final String LOG_FILE_NAME_1 = "applogs_1.txt";
-    //
-    //    private static final String LOG_FILE_NAME_0 = "applogs_0.txt";
-
-    private final Object LOCK = new Object();
-    //    private Queue<String> msgQueue = new ConcurrentLinkedQueue<>();
     private Queue<LogData> msgQueue = new ConcurrentLinkedQueue<>();
     private LogFileParam logFileParam;
 
