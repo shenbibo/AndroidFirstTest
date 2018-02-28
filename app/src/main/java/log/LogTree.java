@@ -17,31 +17,55 @@ public abstract class LogTree {
         this.priority = priority;
     }
 
-    protected boolean isLoggable(int priority, String tag) {
-        return priority >= this.priority;
+    protected boolean isLoggable(final LogData logData) {
+        return logData.priority >= this.priority;
     }
 
-    final void prepareLog(int priority, String tag, String msg, Throwable tr) {
-        if (!isLoggable(priority, tag)) {
-            return;
-        }
-
-        handleMsg(priority, tag, msg, tr);
-    }
-
-    final void prepareLogWithTime(String time, int priority, String tag, String msg, Throwable tr){
-        if (!isLoggable(priority, tag)) {
-            return;
-        }
-
-        handleMsgWithTime(time, priority, tag, msg, tr);
-    }
-
-    //    protected String handleThrowable(Throwable tr) {
-    //        return LogHelper.getStackTraceString(tr);
+    //    final void prepareLog(int priority, String tag, String msg, Throwable tr) {
+    //        if (!isLoggable(priority, tag)) {
+    //            return;
+    //        }
+    //
+    //        handleMsg(priority, tag, msg, tr);
+    //    }
+    //
+    //    final void prepareLog(String logPrefix, int priority, String tag, String msg, Throwable tr){
+    //        if (!isLoggable(priority, tag)) {
+    //            return;
+    //        }
+    //
+    //        handleMsg(logPrefix, priority, tag, msg, tr);
     //    }
 
-    public void handleMsg(int priority, String tag, String msg, Throwable tr) {}
+    //    final void prepareLog(long time, int priority, String tag, String msg, Throwable tr){
+    //        if (!isLoggable(priority, tag)) {
+    //            return;
+    //        }
+    //
+    //        handleMsg(time, priority, tag, msg, tr);
+    //    }
 
-    public void handleMsgWithTime(String time, int priority, String tag, String msg, Throwable tr){}
+    final void prepareLog(final LogData logData) {
+        if (!isLoggable(logData)) {
+            return;
+        }
+
+        handleMsg(logData);
+    }
+
+    //    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {}
+    //
+    //    /**
+    //     * @param logPrefix 日志前缀
+    //     * */
+    //    protected void handleMsg(String logPrefix, int priority, String tag, String msg, Throwable tr){}
+
+    //    protected void handleMsg(long time, int priority, String tag, String msg, Throwable tr){}
+
+    protected void handleMsg(final LogData logData) {}
+
+    /**
+     * 停止日志打印时调用
+     */
+    protected void release() {}
 }

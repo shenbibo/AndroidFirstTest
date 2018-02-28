@@ -14,4 +14,6 @@ public interface LogTreeManagerInterface {
     void removeLogTree(LogTree logTree);
 
     void clear();
+
+    void release();
 }

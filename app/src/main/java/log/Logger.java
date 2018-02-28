@@ -165,10 +165,20 @@ public final class Logger {
         println(ERROR, tag, msg, tr);
     }
 
+    /**
+     * stop and release all log collect.
+     * after call this, if want to use logger again, must call Logger.init first
+     */
+    public static void release() {
+        if (logImpl != null) {
+            logImpl.release();
+            logImpl = null;
+        }
+    }
+
     private static void println(int priority, String tag, String msg, Throwable tr) {
         logImpl.handleMsg(priority, tag, msg, tr);
     }
-    //    private static void println(int priority, String tag, String msg, Throwable tr) {}
 
     public static void init(LogTree... logTrees) {
         if (logImpl == null) {
@@ -202,6 +212,11 @@ public final class Logger {
         @Override
         public void clear() {
             treeManager.clear();
+        }
+
+        @Override
+        public void release() {
+            treeManager.release();
         }
 
         @Override
