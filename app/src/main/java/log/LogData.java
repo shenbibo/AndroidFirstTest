@@ -13,6 +13,7 @@ class LogData {
     String msg;
     Throwable tr;
     int threadId;
+    int dataSize;
 
     LogData(long time, int priority, String tag, String msg, Throwable tr, int threadId){
         this.time = time;

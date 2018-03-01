@@ -1,8 +1,6 @@
 package log;
 
 
-import android.util.Log;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -26,8 +24,8 @@ public class FileTree extends LogTree {
     private final long MAX_FILE_LENGTH;
     private long fileLength = 0;
 
-    private final int MAX_MSG_COUNT;
-    private AtomicInteger msgCount = new AtomicInteger(0);
+    private final long MAX_MEMORY_LOG_LENGTH;
+    private AtomicLong memoryLogLength = new AtomicLong(0);
 
     /**
      * 变焦对输出流进行释放：
@@ -48,7 +46,7 @@ public class FileTree extends LogTree {
 
         this.logFileParam = logFileParam;
         MAX_FILE_LENGTH = logFileParam.maxFileLength;
-        MAX_MSG_COUNT = logFileParam.maxMsgCachedCount;
+        MAX_MEMORY_LOG_LENGTH = logFileParam.maxMemoryLogLength;
         createDirIfNotExists();
 
         new MsgWriteThread().start();
@@ -56,11 +54,13 @@ public class FileTree extends LogTree {
 
     @Override
     protected void handleMsg(final LogData logData) {
-        if (msgCount.get() > MAX_MSG_COUNT) {
+        if (memoryLogLength.get() > MAX_MEMORY_LOG_LENGTH) {
             return;
         }
 
-        msgCount.getAndIncrement();
+        // 注意此处是一个估值在Android中String默认采用utf-8,此处大小乘以2倍，实际字符可能没有这么多
+        logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
+        memoryLogLength.getAndAdd(logData.dataSize);
 
         msgQueue.offer(logData);
     }
@@ -117,7 +117,8 @@ public class FileTree extends LogTree {
             LogData logData;
             byte[] msgBytes;
             while ((logData = msgQueue.poll()) != null) {
-                msgCount.getAndDecrement();
+                // 需要减去大小
+                memoryLogLength.getAndAdd(-logData.dataSize);
 
                 StringBuilder msgBuilder = new StringBuilder(256);
 
@@ -226,6 +227,7 @@ public class FileTree extends LogTree {
         public String backupFile;
         public String curWriteFile;
         public long maxFileLength;
+        public long maxMemoryLogLength;
         public int maxMsgCachedCount;
     }
 }

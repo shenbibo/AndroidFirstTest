@@ -35,6 +35,7 @@ public class LogTest {
         logFileParam.backupFile = logFileParam.logFilePath + "applog0.txt";
         logFileParam.curWriteFile = logFileParam.logFilePath + "applog1.txt";
         logFileParam.maxFileLength = 1024 * 1024 * 3;
+        logFileParam.maxMemoryLogLength = 1024 * 1024 * 5;
         logFileParam.maxMsgCachedCount = 10000;
         Logger.init(new FileTree(Logger.VERBOSE, logFileParam));
     }
