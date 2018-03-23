@@ -202,22 +202,22 @@ public final class Logger {
         private TreeManager treeManager = new TreeManager();
 
         @Override
-        public void addLogTree(LogTree logTree) {
+        public boolean addLogTree(LogTree logTree) {
             treeManager.addLogTree(logTree);
         }
 
         @Override
-        public void addLogTrees(LogTree... logTrees) {
+        public boolean addLogTrees(LogTree... logTrees) {
             treeManager.addLogTrees(logTrees);
         }
 
         @Override
-        public void removeLogTree(LogTree logTree) {
+        public boolean removeLogTree(LogTree logTree) {
             treeManager.removeLogTree(logTree);
         }
 
         @Override
-        public void clear() {
+        public boolean clear() {
             treeManager.clear();
         }
 

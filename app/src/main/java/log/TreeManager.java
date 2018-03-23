@@ -1,7 +1,9 @@
 package log;
 
 
+import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 一句话注释。
@@ -12,8 +14,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 final class TreeManager implements LogInterface, LogTreeManagerInterface {
     private final CopyOnWriteArrayList<LogTree> TREES = new CopyOnWriteArrayList<>();
 
-    private LogTree logTree;
-    LogData logData = new LogData();
+    AtomicBoolean isClearCalled = new AtomicBoolean(false);
+
+    //private LogTree logcatTree;
+    //LogData logData = new LogData();
 
     @Override
     public void handleMsg(int priority, String tag, String msg, Throwable tr) {
@@ -39,8 +43,8 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
         //        for(int i = 0; i < TREES.size(); i++){
         //            TREES.get(i).prepareLog(logData);
         //        }
-        // logTree.prepareLog(logData);
-        //logTree.handleMsg(priority, tag, msg, tr);
+        // logcatTree.prepareLog(logData);
+        //logcatTree.handleMsg(priority, tag, msg, tr);
 
         //        for (int i = 0; i < TREES.size(); i++){
         //           TREES.get(i).prepareLog(priority, tag, msg, tr);
@@ -51,38 +55,49 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
     }
 
     @Override
-    public void addLogTree(LogTree logTree) {
-        TREES.add(logTree);
+    public boolean addLogTree(LogTree logTree) {
+        return !isClearCalled.get() && TREES.add(logTree);
+
     }
 
     @Override
-    public void addLogTrees(LogTree... logTrees) {
-        for (LogTree logTree : logTrees) {
-            addLogTree(logTree);
-        }
-        //logTree = logTrees[0];
+    public boolean addLogTrees(LogTree... logTrees) {
+        return !isClearCalled.get() && TREES.addAll(Arrays.asList(logTrees));
+
     }
 
     @Override
-    public void removeLogTree(LogTree logTree) {
-        if (logTree == null) {
-            return;
+    public boolean removeLogTree(LogTree logTree) {
+        if (isClearCalled.get()) {
+            return false;
         }
 
         logTree.release();
-        TREES.remove(logTree);
+        return TREES.remove(logTree);
     }
 
     @Override
-    public void clear() {
+    public boolean clear() {
+        if (isClearCalled.get()) {
+            return false;
+        }
+        isClearCalled.set(true);
+
         release();
-        TREES.clear();
+        TREES.set(0, null);
+        // 删除除了第一个元素外的所有元素
+        boolean removed = TREES.removeAll(TREES.subList(1, TREES.size() - 1));
+
+        isClearCalled.set(false);
+        return removed;
     }
 
     @Override
     public void release() {
         for (LogTree logTree : TREES) {
-            logTree.release();
+            if (logTree != null) {
+                logTree.release();
+            }
         }
     }
 }

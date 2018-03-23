@@ -7,13 +7,13 @@ package log;
  * @author sky on 2018/2/26
  */
 public interface LogTreeManagerInterface {
-    void addLogTree(LogTree logTree);
+    boolean addLogTree(LogTree logTree);
 
-    void addLogTrees(LogTree... logTrees);
+    boolean addLogTrees(LogTree... logTrees);
 
-    void removeLogTree(LogTree logTree);
+    boolean removeLogTree(LogTree logTree);
 
-    void clear();
+    boolean clear();
 
     void release();
 }
