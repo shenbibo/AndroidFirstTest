@@ -17,19 +17,29 @@ public abstract class LogTree {
         this.priority = priority;
     }
 
-    protected boolean isLoggable(final LogData logData) {
-        return logData.priority >= this.priority;
+    protected boolean isLoggable(final int priority) {
+        return priority >= this.priority;
     }
 
     final void prepareLog(final LogData logData) {
-        if (!isLoggable(logData)) {
+        if (!isLoggable(logData.priority)) {
             return;
         }
 
         handleMsg(logData);
     }
 
+    final void prepareLog(int priority, String tag, String msg, Throwable tr) {
+        if (!isLoggable(priority)) {
+            return;
+        }
+
+        handleMsg(priority, tag, msg, tr);
+    }
+
     protected void handleMsg(final LogData logData) {}
+
+    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {}
 
     /**
      * 停止日志打印时调用

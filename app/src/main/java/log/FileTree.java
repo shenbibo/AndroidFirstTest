@@ -1,6 +1,9 @@
 package log;
 
 
+import android.os.Process;
+import android.util.Log;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -8,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -18,35 +22,44 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author sky on 2018/2/26
  */
 public class FileTree extends LogTree {
+    private static final int DEAL_LOG_CLOSED = 0;
+    private static final int REQUSET_CLOSE_LOG = 1;
+    private static final int DEAL_LOG_STARTED = 2;
+
+
     private Queue<LogData> msgQueue = new ConcurrentLinkedQueue<>();
-    private LogFileParam logFileParam;
+    private LogFileConfig logFileConfig;
 
-    private final long MAX_FILE_LENGTH;
-    private long fileLength = 0;
+        private long maxFileLength;
+    private long curWriteFileLength = 0;
 
-    private final long MAX_MEMORY_LOG_LENGTH;
-    private AtomicLong memoryLogLength = new AtomicLong(0);
+        private long maxMemoryLogSize;
+    private AtomicLong memoryLogSize = new AtomicLong(0);
 
     /**
-     * 变焦对输出流进行释放：
-     * 设置为 1，表示正常打印日志，
-     * 设置为 0，则表示需要停止日志打印
-     * 设置为-1，则表示输出流已经关闭完成
+     * 0，表示日志处理已经关闭，并且资源已经释放
+     * 1，表示当前请求关闭日志处理
+     * 2，当前正常接收处理日志
      */
-    private AtomicInteger releaseCount = new AtomicInteger(0);
+    private AtomicInteger logDealState = new AtomicInteger(0);
+
+    /**
+     * 设置为true则表示采集线程已经完整释放操作
+     */
+    private AtomicBoolean isStopped = new AtomicBoolean(true);
 
     /**
      * 构造器
      *
-     * @param priority     日志输出优先级
-     * @param logFileParam 指定日志备份文件，当前写文件路径和单个文件最大字节数
+     * @param priority      日志输出优先级
+     * @param logFileConfig 指定日志备份文件，当前写文件路径和单个文件最大字节数
      */
-    public FileTree(int priority, LogFileParam logFileParam) {
+    public FileTree(int priority, LogFileConfig logFileConfig) {
         super(priority);
 
-        this.logFileParam = logFileParam;
-        MAX_FILE_LENGTH = logFileParam.maxFileLength;
-        MAX_MEMORY_LOG_LENGTH = logFileParam.maxMemoryLogLength;
+        this.logFileConfig = logFileConfig;
+                maxFileLength = logFileConfig.maxLogFileLength;
+                maxMemoryLogSize = logFileConfig.maxMemoryLogSize;
         createDirIfNotExists();
 
         new MsgWriteThread().start();
@@ -54,38 +67,81 @@ public class FileTree extends LogTree {
 
     @Override
     protected void handleMsg(final LogData logData) {
-        if (memoryLogLength.get() > MAX_MEMORY_LOG_LENGTH) {
+        //long startTime2 = System.nanoTime();
+        if (memoryLogSize.get() > maxMemoryLogSize) {
             return;
         }
+        //long finishTime2 = System.nanoTime();
+        //Log.i("Logger", "checkSize Time = " + (finishTime2 - startTime2) / 1000);
 
+        //long startTime = System.nanoTime();
         // 注意此处是一个估值在Android中String默认采用utf-8,此处大小乘以2倍，实际字符可能没有这么多
         logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
-        memoryLogLength.getAndAdd(logData.dataSize);
+        memoryLogSize.getAndAdd(logData.dataSize);
+        //long finishTime = System.nanoTime();
+        //Log.i("Logger", "memoryLogSize Time = " + (finishTime - startTime) / 1000);
 
+        //long startTime1 = System.nanoTime();
         msgQueue.offer(logData);
+        //long finishTime1 = System.nanoTime();
+        //Log.i("Logger", "mmsgQueue.offer Time = " + (finishTime1 - startTime1) / 1000);
     }
 
     @Override
+    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {
+        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
+
+        // 初次耗时约17us，后续可能是4us
+        long startTime2 = System.nanoTime();
+        if (memoryLogSize.get() > maxMemoryLogSize) {
+            return;
+        }
+        long finishTime2 = System.nanoTime();
+        Log.i("Logger", "checkSize Time = " + (finishTime2 - startTime2) / 1000);
+
+        // 初次耗时可能是24us，后续可能是12
+        long startTime = System.nanoTime();
+        // 注意此处是一个估值在Android中String默认采用utf-8,此处大小乘以2倍，实际字符可能没有这么多
+        logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
+        memoryLogSize.getAndAdd(logData.dataSize);
+        long finishTime = System.nanoTime();
+        Log.i("Logger", "memoryLogSize Time = " + (finishTime - startTime) / 1000);
+
+        // 初次耗时可能是29，后续可能是18us，如果是连续循坏调用时间接近3us
+        long startTime1 = System.nanoTime();
+        msgQueue.offer(logData);
+        long finishTime1 = System.nanoTime();
+        Log.i("Logger", "mmsgQueue.offer Time = " + (finishTime1 - startTime1) / 1000);
+    }
+
+    /**
+     * 调用该方法，会等待子线程释放完成后，才返回。
+     */
+    @Override
     protected void release() {
-        releaseCount.set(0);
+        if (logDealState.get() <= REQUSET_CLOSE_LOG) {
+            return;
+        }
+
+        logDealState.set(REQUSET_CLOSE_LOG);
         for (; ; ) {
-            if (releaseCount.get() < 0) {
+            if (logDealState.get() < REQUSET_CLOSE_LOG) {
                 return;
             }
         }
     }
 
     private void createDirIfNotExists() {
-        File dir = new File(logFileParam.logFilePath);
+        File dir = new File(logFileConfig.logFilePath);
         if (!dir.exists()) {
             if (dir.mkdirs()) {
                 return;
             }
-            throw new IllegalStateException("make dir " + logFileParam.logFilePath + " fail");
+            throw new IllegalStateException("make dir " + logFileConfig.logFilePath + " fail");
         }
 
         if (!dir.isDirectory()) {
-            throw new IllegalArgumentException("logFilePath " + logFileParam.logFilePath + " must be a dir");
+            throw new IllegalArgumentException("logFilePath " + logFileConfig.logFilePath + " must be a dir");
         }
     }
 
@@ -98,19 +154,24 @@ public class FileTree extends LogTree {
 
         @Override
         public void run() {
-            if (fos == null) {
-                System.out.println("fos is null return and stop the thread");
-                return;
-            }
+            try {
+                if (fos == null) {
+                    System.out.println("fos is null return and stop the thread");
+                    return;
+                }
 
-            releaseCount.set(1);
-            for (; releaseCount.get() > 0; ) {
-                pollMsgAndCheckFileLength();
-                waitForNewMsg();
-            }
+                logDealState.set(DEAL_LOG_STARTED);
+                for (; logDealState.get() > REQUSET_CLOSE_LOG; ) {
+                    pollMsgAndCheckFileLength();
+                    waitForNewMsg();
+                }
 
-            closeAndSetMsgStreamNull();
-            releaseCount.set(-1);
+                closeAndSetMsgStreamNull();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            } finally {
+                logDealState.set(DEAL_LOG_CLOSED);
+            }
         }
 
         private void pollMsgAndCheckFileLength() {
@@ -118,7 +179,7 @@ public class FileTree extends LogTree {
             byte[] msgBytes;
             while ((logData = msgQueue.poll()) != null) {
                 // 需要减去大小
-                memoryLogLength.getAndAdd(-logData.dataSize);
+                memoryLogSize.getAndAdd(-logData.dataSize);
 
                 StringBuilder msgBuilder = new StringBuilder(256);
 
@@ -136,8 +197,8 @@ public class FileTree extends LogTree {
 
                 try {
                     fos.write(msgBytes);
-                    fileLength += length;
-                    if (fileLength >= MAX_FILE_LENGTH) {
+                    curWriteFileLength += length;
+                    if (curWriteFileLength >= logFileConfig.maxLogFileLength) {
                         checkAndCreateCurWriteFile();
                     }
                 } catch (IOException exception) {
@@ -148,7 +209,7 @@ public class FileTree extends LogTree {
         }
 
         private void waitForNewMsg() {
-            if (releaseCount.get() <= 0) {
+            if (logDealState.get() <= 0) {
                 return;
             }
 
@@ -179,28 +240,28 @@ public class FileTree extends LogTree {
          */
         @SuppressWarnings("ResultOfMethodCallIgnored")
         private void checkAndCreateCurWriteFile() {
-            File file = new File(logFileParam.curWriteFile);
+            File file = new File(logFileConfig.curWriteFile);
             try {
                 if (file.exists()) {
-                    if (file.length() >= MAX_FILE_LENGTH) {
+                    if (file.length() >= logFileConfig.maxLogFileLength) {
                         // 先关闭针对当前文件的写流
                         closeAndSetMsgStreamNull();
 
                         System.out.println("rename the fileName, create new file");
-                        File backupFile = new File(logFileParam.backupFile);
+                        File backupFile = new File(logFileConfig.backupFile);
                         backupFile.delete();
                         file.renameTo(backupFile);
-                        fileLength = 0;
+                        curWriteFileLength = 0;
                     } else {
-                        fileLength = file.length();
+                        curWriteFileLength = file.length();
                     }
                 } else {
-                    fileLength = 0;
+                    curWriteFileLength = 0;
                 }
 
             } catch (Exception exception) {
                 exception.printStackTrace();
-                fileLength = 0;
+                curWriteFileLength = 0;
             } finally {
                 createMsgStreamIfNull();
             }
@@ -212,22 +273,22 @@ public class FileTree extends LogTree {
             }
 
             try {
-                fos = new FileOutputStream(logFileParam.curWriteFile, true);
+                fos = new FileOutputStream(logFileConfig.curWriteFile, true);
             } catch (FileNotFoundException exception) {
                 exception.printStackTrace();
             }
         }
     }
 
-    public static class LogFileParam {
+    public static class LogFileConfig {
         public String logFilePath;
         /**
          * include the logFilePath + fileName
          */
         public String backupFile;
         public String curWriteFile;
-        public long maxFileLength;
-        public long maxMemoryLogLength;
+        public long maxLogFileLength;
+        public long maxMemoryLogSize;
         public int maxMsgCachedCount;
     }
 }

@@ -1,5 +1,7 @@
 package log;
 
+import android.util.Log;
+
 /**
  * 一句话注释。
  * 详细内容。
@@ -85,6 +87,8 @@ public final class Logger {
         println(DEBUG, tag, msg, tr);
     }
 
+    private static LogcatTree logcatTree = new LogcatTree(Log.VERBOSE);
+
     /**
      * Send an {@link #INFO} log message.
      *
@@ -94,6 +98,8 @@ public final class Logger {
      */
     public static void info(String tag, String msg) {
         println(INFO, tag, msg, null);
+        //logcatTree.handleMsg(Logger.INFO, tag, msg, null);
+        //logcatTree.prepareLog(Logger.INFO, tag, msg, null);
     }
 
     /**
@@ -165,19 +171,20 @@ public final class Logger {
         println(ERROR, tag, msg, tr);
     }
 
-    /**
-     * stop and release all log collect.
-     * after call this, if want to use logger again, must call Logger.init first
-     */
-    public static void release() {
-        if (logImpl != null) {
-            logImpl.release();
-            logImpl = null;
-        }
-    }
+    //    /**
+    //     * stop and release all log collect.
+    //     * after call this, if want to use logger again, must call Logger.init first
+    //     */
+    //    public static void release() {
+    //        if (logImpl != null) {
+    //            logImpl.release();
+    //            logImpl = null;
+    //        }
+    //    }
 
     private static void println(int priority, String tag, String msg, Throwable tr) {
         logImpl.handleMsg(priority, tag, msg, tr);
+        //logcatTree.prepareLog(priority, tag, msg, tr);
     }
 
     public static void init(LogTree... logTrees) {
@@ -191,7 +198,7 @@ public final class Logger {
         return logImpl;
     }
 
-    public static class LogImpl implements LogTreeManagerInterface, LogInterface {
+    public static class LogImpl implements LogTreeManagerInterface {
         private TreeManager treeManager = new TreeManager();
 
         @Override
@@ -214,13 +221,16 @@ public final class Logger {
             treeManager.clear();
         }
 
+        /**
+         * stop and release all log collect.
+         * after call this, if want to use logger again, must call Logger.init first
+         */
         @Override
         public void release() {
             treeManager.release();
         }
 
-        @Override
-        public void handleMsg(int priority, String tag, String msg, Throwable tr) {
+        void handleMsg(int priority, String tag, String msg, Throwable tr) {
             treeManager.handleMsg(priority, tag, msg, tr);
         }
     }

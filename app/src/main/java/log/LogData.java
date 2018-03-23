@@ -15,7 +15,20 @@ class LogData {
     int threadId;
     int dataSize;
 
-    LogData(long time, int priority, String tag, String msg, Throwable tr, int threadId){
+    LogData(long time, int priority, String tag, String msg, Throwable tr, int threadId) {
+        this.time = time;
+        this.priority = priority;
+        this.tag = tag;
+        this.msg = msg;
+        this.tr = tr;
+        this.threadId = threadId;
+    }
+
+    public LogData() {
+
+    }
+
+    void set(long time, int priority, String tag, String msg, Throwable tr, int threadId) {
         this.time = time;
         this.priority = priority;
         this.tag = tag;
