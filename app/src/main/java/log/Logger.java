@@ -40,6 +40,7 @@ public final class Logger {
     public static final int ASSERT = 7;
 
     private static LogImpl logImpl;
+    //private TreeManager treeManager = new TreeManager();
 
     /**
      * Send a {@link #VERBOSE} log message.
@@ -187,9 +188,10 @@ public final class Logger {
         //logcatTree.prepareLog(priority, tag, msg, tr);
     }
 
-    public static void init(LogTree... logTrees) {
+    public static void init(int maxMemoryLogSize, LogTree... logTrees) {
         if (logImpl == null) {
             logImpl = new LogImpl();
+            logImpl.init(maxMemoryLogSize);
             logImpl.addLogTrees(logTrees);
         }
     }
@@ -201,34 +203,34 @@ public final class Logger {
     public static class LogImpl implements LogTreeManagerInterface {
         private TreeManager treeManager = new TreeManager();
 
+        public void init(int maxMemoryLogSize){
+            treeManager.init(maxMemoryLogSize);
+        }
+
         @Override
         public boolean addLogTree(LogTree logTree) {
-            treeManager.addLogTree(logTree);
+            return treeManager.addLogTree(logTree);
         }
 
         @Override
         public boolean addLogTrees(LogTree... logTrees) {
-            treeManager.addLogTrees(logTrees);
+            return treeManager.addLogTrees(logTrees);
         }
 
         @Override
         public boolean removeLogTree(LogTree logTree) {
-            treeManager.removeLogTree(logTree);
+            return treeManager.removeLogTree(logTree);
         }
 
         @Override
-        public boolean clear() {
-            treeManager.clear();
+        public boolean clearTrees() {
+            return treeManager.clearTrees();
         }
 
-        /**
-         * stop and release all log collect.
-         * after call this, if want to use logger again, must call Logger.init first
-         */
-        @Override
-        public void release() {
-            treeManager.release();
-        }
+//        @Override
+//        public void close() {
+//            treeManager.close();
+//        }
 
         void handleMsg(int priority, String tag, String msg, Throwable tr) {
             treeManager.handleMsg(priority, tag, msg, tr);

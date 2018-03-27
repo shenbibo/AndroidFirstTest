@@ -2,7 +2,6 @@ package log;
 
 import android.os.Environment;
 import android.os.Process;
-import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 import android.util.Log;
 
@@ -29,22 +28,35 @@ public class LogTest {
     @BeforeClass
     public static void init() {
         LogFileConfig logFileConfig = new LogFileConfig();
-        logFileConfig.logFilePath = Environment.getExternalStorageDirectory()
+        logFileConfig.logFileDir = Environment.getExternalStorageDirectory()
             + File.separator + "logTest" + File.separator;
 
-        logFileConfig.backupFile = logFileConfig.logFilePath + "applog0.txt";
-        logFileConfig.curWriteFile = logFileConfig.logFilePath + "applog1.txt";
+        logFileConfig.backupFile = logFileConfig.logFileDir + "applog0.txt";
+        logFileConfig.curWriteFile = logFileConfig.logFileDir + "applog1.txt";
         logFileConfig.maxLogFileLength = 1024 * 1024 * 3;
         logFileConfig.maxMemoryLogSize = 1024 * 1024 * 5;
         logFileConfig.maxMsgCachedCount = 10000;
         //Logger.init(new FileTree(Logger.VERBOSE, logFileConfig));
-        Logger.init(new LogcatTree(Logger.VERBOSE), new FileTree(Logger.VERBOSE, logFileConfig));
+        //Logger.init(new LogcatTree(Logger.VERBOSE), new FileTree(Logger.VERBOSE, logFileConfig));
+        Logger.init(1024 * 1024, new LogcatTree(Logger.VERBOSE), new FileTree2(Logger.VERBOSE, logFileConfig));
     }
 
     @Test
     public void testPrintlnLogInLooper() {
-        LogcatTree logcatTree = new LogcatTree(Logger.VERBOSE);
-        int count = 9000;
+        //        LogFileConfig logFileConfig = new LogFileConfig();
+        //        logFileConfig.logFileDir = Environment.getExternalStorageDirectory()
+        //            + File.separator + "logTest" + File.separator;
+        //        logFileConfig.backupFile = logFileConfig.logFileDir + "applog0.txt";
+        //        logFileConfig.curWriteFile = logFileConfig.logFileDir + "applog1.txt";
+        //        logFileConfig.maxLogFileLength = 1024 * 1024 * 3;
+        //        logFileConfig.maxMemoryLogSize = 1024 * 1024 * 5;
+        //        logFileConfig.maxMsgCachedCount = 10000;
+        //
+        //        LogcatTree logcatTree = new LogcatTree(Logger.VERBOSE);
+        //        TreeManager treeManager = new TreeManager();
+        //        treeManager.init(1024 * 1024);
+        //        treeManager.addLogTrees(new LogcatTree(Logger.VERBOSE), new FileTree(Logger.VERBOSE, logFileConfig));
+        int count = 100;
         String[] msgs = new String[count];
         for (int i = 0; i < count; i++) {
             msgs[i] = "this is test file tree, log num = " + i;
@@ -58,8 +70,9 @@ public class LogTest {
             //logcatTree.handleMsg(Logger.INFO, TAG,  msgs[i],  null);
             // Logger里面直接调用LogcatTree.handleMsg 大约需要21us
             Logger.info(TAG, msgs[i]);
+            //treeManager.handleMsg(Logger.INFO, TAG, msgs[i], null);
             long finishTime1 = System.nanoTime();
-            Log.i(TAG,  i + " msg take time = " + (finishTime1 - startTime1) / 1000);
+            //Log.i(TAG, i + " msg take time = " + (finishTime1 - startTime1) / 1000);
             //SystemClock.sleep(500);
         }
         long finishTime = System.currentTimeMillis();
@@ -107,13 +120,13 @@ public class LogTest {
         for (int i = 0; i < count; i++) {
             msgs[i] = "this is test file tree, log num = " + i;
         }
-//        long startTime = System.currentTimeMillis();
-//        for (int i = 0; i < count; i++) {
-//            Logger.info(TAG, msgs[i]);
-//        }
-//        long finishTime = System.currentTimeMillis();
-//
-//        Log.i(TAG, "Logger.info println, count = " + count + " msg, take time = " + (finishTime - startTime));
+        //        long startTime = System.currentTimeMillis();
+        //        for (int i = 0; i < count; i++) {
+        //            Logger.info(TAG, msgs[i]);
+        //        }
+        //        long finishTime = System.currentTimeMillis();
+        //
+        //        Log.i(TAG, "Logger.info println, count = " + count + " msg, take time = " + (finishTime - startTime));
 
         long startTime1 = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
@@ -156,7 +169,7 @@ public class LogTest {
         long finishTime1 = System.currentTimeMillis();
         long logTime = finishTime1 - startTime1;
 
-        Log.i(TAG, "loggerTime = " + loggerTime + ", logTime = " + logTime);
+        Log.i(TAG, "loggerTime = " + loggerTime + ", logcatTime = " + logTime);
 
         Thread.sleep(60000);
 
@@ -185,7 +198,7 @@ public class LogTest {
                 }
             }
 
-            int count = 3000;
+            int count = 2000;
             String[] msgs = new String[count];
             int threadId = Process.myTid();
             for (int i = 0; i < count; i++) {

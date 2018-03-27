@@ -23,17 +23,17 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class FileTree extends LogTree {
     private static final int DEAL_LOG_CLOSED = 0;
-    private static final int REQUSET_CLOSE_LOG = 1;
+    private static final int REQUEST_CLOSE_LOG = 1;
     private static final int DEAL_LOG_STARTED = 2;
 
 
     private Queue<LogData> msgQueue = new ConcurrentLinkedQueue<>();
     private LogFileConfig logFileConfig;
 
-        private long maxFileLength;
+    private long maxFileLength;
     private long curWriteFileLength = 0;
 
-        private long maxMemoryLogSize;
+    private long maxMemoryLogSize;
     private AtomicLong memoryLogSize = new AtomicLong(0);
 
     /**
@@ -58,8 +58,8 @@ public class FileTree extends LogTree {
         super(priority);
 
         this.logFileConfig = logFileConfig;
-                maxFileLength = logFileConfig.maxLogFileLength;
-                maxMemoryLogSize = logFileConfig.maxMemoryLogSize;
+        maxFileLength = logFileConfig.maxLogFileLength;
+        maxMemoryLogSize = logFileConfig.maxMemoryLogSize;
         createDirIfNotExists();
 
         new MsgWriteThread().start();
@@ -68,21 +68,21 @@ public class FileTree extends LogTree {
     @Override
     protected void handleMsg(final LogData logData) {
         //long startTime2 = System.nanoTime();
-        if (memoryLogSize.get() > maxMemoryLogSize) {
-            return;
-        }
-        //long finishTime2 = System.nanoTime();
-        //Log.i("Logger", "checkSize Time = " + (finishTime2 - startTime2) / 1000);
-
-        //long startTime = System.nanoTime();
-        // 注意此处是一个估值在Android中String默认采用utf-8,此处大小乘以2倍，实际字符可能没有这么多
-        logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
-        memoryLogSize.getAndAdd(logData.dataSize);
-        //long finishTime = System.nanoTime();
-        //Log.i("Logger", "memoryLogSize Time = " + (finishTime - startTime) / 1000);
-
-        //long startTime1 = System.nanoTime();
-        msgQueue.offer(logData);
+        //        if (memoryLogSize.get() > maxMemoryLogSize) {
+        //            return;
+        //        }
+        //        //long finishTime2 = System.nanoTime();
+        //        //Log.i("Logger", "checkSize Time = " + (finishTime2 - startTime2) / 1000);
+        //
+        //        //long startTime = System.nanoTime();
+        //        // 注意此处是一个估值在Android中String默认采用utf-8,此处大小乘以2倍，实际字符可能没有这么多
+        //        logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
+        //        memoryLogSize.getAndAdd(logData.dataSize);
+        //        //long finishTime = System.nanoTime();
+        //        //Log.i("Logger", "memoryLogSize Time = " + (finishTime - startTime) / 1000);
+        //
+        //        //long startTime1 = System.nanoTime();
+        //        msgQueue.offer(logData);
         //long finishTime1 = System.nanoTime();
         //Log.i("Logger", "mmsgQueue.offer Time = " + (finishTime1 - startTime1) / 1000);
     }
@@ -119,29 +119,29 @@ public class FileTree extends LogTree {
      */
     @Override
     protected void release() {
-        if (logDealState.get() <= REQUSET_CLOSE_LOG) {
+        if (logDealState.get() <= REQUEST_CLOSE_LOG) {
             return;
         }
 
-        logDealState.set(REQUSET_CLOSE_LOG);
+        logDealState.set(REQUEST_CLOSE_LOG);
         for (; ; ) {
-            if (logDealState.get() < REQUSET_CLOSE_LOG) {
+            if (logDealState.get() < REQUEST_CLOSE_LOG) {
                 return;
             }
         }
     }
 
     private void createDirIfNotExists() {
-        File dir = new File(logFileConfig.logFilePath);
+        File dir = new File(logFileConfig.logFileDir);
         if (!dir.exists()) {
             if (dir.mkdirs()) {
                 return;
             }
-            throw new IllegalStateException("make dir " + logFileConfig.logFilePath + " fail");
+            throw new IllegalStateException("make dir " + logFileConfig.logFileDir + " fail");
         }
 
         if (!dir.isDirectory()) {
-            throw new IllegalArgumentException("logFilePath " + logFileConfig.logFilePath + " must be a dir");
+            throw new IllegalArgumentException("logFileDir " + logFileConfig.logFileDir + " must be a dir");
         }
     }
 
@@ -161,7 +161,7 @@ public class FileTree extends LogTree {
                 }
 
                 logDealState.set(DEAL_LOG_STARTED);
-                for (; logDealState.get() > REQUSET_CLOSE_LOG; ) {
+                for (; logDealState.get() > REQUEST_CLOSE_LOG; ) {
                     pollMsgAndCheckFileLength();
                     waitForNewMsg();
                 }
@@ -281,9 +281,9 @@ public class FileTree extends LogTree {
     }
 
     public static class LogFileConfig {
-        public String logFilePath;
+        public String logFileDir;
         /**
-         * include the logFilePath + fileName
+         * include the logFileDir + fileName
          */
         public String backupFile;
         public String curWriteFile;

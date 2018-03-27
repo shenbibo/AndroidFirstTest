@@ -1,6 +1,8 @@
 package log;
 
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * 日志树基类，由子类实现具体的日志功能
  * 详细内容。
@@ -9,6 +11,7 @@ package log;
  */
 public abstract class LogTree {
     protected int priority;
+    protected AtomicBoolean isReleaseCalled = new AtomicBoolean(false);
 
     /**
      * 构造器
@@ -42,7 +45,13 @@ public abstract class LogTree {
     protected void handleMsg(int priority, String tag, String msg, Throwable tr) {}
 
     /**
-     * 停止日志打印时调用
+     * 停止日志打印时调用，子类必须调用super.release
      */
-    protected void release() {}
+    protected void release() {
+        isReleaseCalled.set(true);
+    }
+
+    protected boolean isReleaseCalled() {
+        return isReleaseCalled.get();
+    }
 }
