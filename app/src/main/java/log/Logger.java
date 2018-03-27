@@ -2,6 +2,8 @@ package log;
 
 import android.util.Log;
 
+import java.util.List;
+
 /**
  * 一句话注释。
  * 详细内容。
@@ -99,7 +101,7 @@ public final class Logger {
      */
     public static void info(String tag, String msg) {
         println(INFO, tag, msg, null);
-        //logcatTree.handleMsg(Logger.INFO, tag, msg, null);
+        //logcatTree.handleMsgOnCalledThread(Logger.INFO, tag, msg, null);
         //logcatTree.prepareLog(Logger.INFO, tag, msg, null);
     }
 
@@ -173,11 +175,12 @@ public final class Logger {
     }
 
     private static final String TAG = "LogTest";
-    private static void println(int priority, String tag, String msg, Throwable tr) {
-        long startTime = System.nanoTime();
+
+    public static void println(int priority, String tag, String msg, Throwable tr) {
+        //long startTime = System.nanoTime();
         logImpl.handleMsg(priority, tag, msg, tr);
-        long endTime = System.nanoTime();
-        Log.i(TAG, "handleMsg = " + (endTime - startTime) / 1000);
+        //long endTime = System.nanoTime();
+        //Log.i(TAG, "handleMsgOnCalledThread = " + (endTime - startTime) / 1000);
     }
 
     public static void init(int maxMemoryLogSize, LogTree... logTrees) {
@@ -188,6 +191,13 @@ public final class Logger {
         }
     }
 
+    /**
+     * 获取内存缓存最新日志，注意必要添加LogCacheTree，并且LogCacheConfig.maxLogMemoryCacheSize > 0, 否则返回null
+     */
+    public static List<byte[]> getMemoryCachedMsg() {
+        return logImpl.getMemoryCachedMsg();
+    }
+
     public static LogImpl getLogImpl() {
         return logImpl;
     }
@@ -195,7 +205,7 @@ public final class Logger {
     public static class LogImpl implements LogTreeManagerInterface {
         private TreeManager treeManager = new TreeManager();
 
-        public void init(int maxMemoryLogSize){
+        public void init(int maxMemoryLogSize) {
             treeManager.init(maxMemoryLogSize);
         }
 
@@ -221,6 +231,10 @@ public final class Logger {
 
         void handleMsg(int priority, String tag, String msg, Throwable tr) {
             treeManager.handleMsg(priority, tag, msg, tr);
+        }
+
+        List<byte[]> getMemoryCachedMsg() {
+            return treeManager.getMemoryCachedMsg();
         }
     }
 }

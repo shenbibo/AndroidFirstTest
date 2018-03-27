@@ -28,7 +28,7 @@ public class FileTree extends LogTree {
 
 
     private Queue<LogData> msgQueue = new ConcurrentLinkedQueue<>();
-    private LogFileConfig logFileConfig;
+    private LogCacheConfig logFileConfig;
 
     private long maxFileLength;
     private long curWriteFileLength = 0;
@@ -54,19 +54,18 @@ public class FileTree extends LogTree {
      * @param priority      日志输出优先级
      * @param logFileConfig 指定日志备份文件，当前写文件路径和单个文件最大字节数
      */
-    public FileTree(int priority, LogFileConfig logFileConfig) {
+    public FileTree(int priority, LogCacheConfig logFileConfig) {
         super(priority);
 
         this.logFileConfig = logFileConfig;
         maxFileLength = logFileConfig.maxLogFileLength;
-        maxMemoryLogSize = logFileConfig.maxMemoryLogSize;
         createDirIfNotExists();
 
         new MsgWriteThread().start();
     }
 
     @Override
-    protected void handleMsg(final LogData logData) {
+    protected void handleMsgOnSubThread(final LogData logData) {
         //long startTime2 = System.nanoTime();
         //        if (memoryLogSize.get() > maxMemoryLogSize) {
         //            return;
@@ -88,7 +87,7 @@ public class FileTree extends LogTree {
     }
 
     @Override
-    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {
+    protected void handleMsgOnCalledThread(int priority, String tag, String msg, Throwable tr) {
         LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
 
         // 初次耗时约17us，后续可能是4us
@@ -280,15 +279,4 @@ public class FileTree extends LogTree {
         }
     }
 
-    public static class LogFileConfig {
-        public String logFileDir;
-        /**
-         * include the logFileDir + fileName
-         */
-        public String backupFile;
-        public String curWriteFile;
-        public long maxLogFileLength;
-        public long maxMemoryLogSize;
-        public int maxMsgCachedCount;
-    }
 }

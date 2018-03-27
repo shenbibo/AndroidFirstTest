@@ -19,17 +19,9 @@ public class LogcatTree extends LogTree {
     }
 
     @Override
-    protected void handleMsg(LogData logData) {
-        String tempStr = logData.tr == null ? logData.msg : logData.msg
-            + '\n' + LogHelper.getStackTraceString(logData.tr);
-        Log.println(logData.priority, logData.tag, tempStr);
-    }
-
-    @Override
-    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {
+    protected void handleMsgOnCalledThread(int priority, String tag, String msg, Throwable tr) {
         String tempStr = tr == null ? msg : msg
             + '\n' + LogHelper.getStackTraceString(tr);
         Log.println(priority, tag, tempStr);
-//        Log.println(priority, tag, msg);
     }
 }

@@ -29,7 +29,7 @@ public abstract class LogTree {
             return;
         }
 
-        handleMsg(logData);
+        handleMsgOnSubThread(logData);
     }
 
     final void prepareLog(int priority, String tag, String msg, Throwable tr) {
@@ -37,12 +37,12 @@ public abstract class LogTree {
             return;
         }
 
-        handleMsg(priority, tag, msg, tr);
+        handleMsgOnCalledThread(priority, tag, msg, tr);
     }
 
-    protected void handleMsg(final LogData logData) {}
+    protected void handleMsgOnSubThread(final LogData logData) {}
 
-    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {}
+    protected void handleMsgOnCalledThread(int priority, String tag, String msg, Throwable tr) {}
 
     /**
      * 停止日志打印时调用，子类必须调用super.release

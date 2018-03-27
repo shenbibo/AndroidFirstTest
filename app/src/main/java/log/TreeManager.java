@@ -3,6 +3,7 @@ package log;
 
 import android.os.Process;
 
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -104,7 +105,7 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
 
     @Override
     public synchronized boolean removeLogTree(LogTree logTree) {
-        if ( logTree == null) {
+        if (logTree == null) {
             return false;
         }
 
@@ -117,14 +118,6 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
         }
 
         return removed;
-    }
-
-    private boolean removeTree(LogTree logTree) {
-        if (logTree instanceof LogcatTree) {
-            TREES.set(0, null);
-            return true;
-        }
-        return TREES.remove(logTree);
     }
 
     /**
@@ -140,6 +133,25 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
         return removed;
     }
 
+    /**
+     * 获取内存缓存最新日志，注意必要添加LogCacheTree，否则返回null
+     */
+    List<byte[]> getMemoryCachedMsg() {
+        for (LogTree tree : TREES) {
+            if (tree instanceof LogCacheTree) {
+                return ((LogCacheTree) tree).getMemoryCachedMsg();
+            }
+        }
+        return null;
+    }
+
+    private boolean removeTree(LogTree logTree) {
+        if (logTree instanceof LogcatTree) {
+            TREES.set(0, null);
+            return true;
+        }
+        return TREES.remove(logTree);
+    }
 
     private void release() {
         for (LogTree logTree : TREES) {
@@ -184,7 +196,7 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
         return dispatcherThreadState.get() == THREAD_CLOSED;
     }
 
-    class MsgDispatcherThread extends Thread {
+    private class MsgDispatcherThread extends Thread {
 
         @Override
         public void run() {
@@ -229,7 +241,6 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
                 logTree.prepareLog(logData);
             }
         }
-
     }
 
     class MsgDispatcherThread2 extends Thread {

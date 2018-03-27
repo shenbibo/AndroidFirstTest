@@ -10,9 +10,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
-import log.FileTree.LogFileConfig;
 
 
 /**
@@ -27,23 +26,22 @@ public class LogTest {
 
     @BeforeClass
     public static void init() {
-        LogFileConfig logFileConfig = new LogFileConfig();
+        LogCacheConfig logFileConfig = new LogCacheConfig();
         logFileConfig.logFileDir = Environment.getExternalStorageDirectory()
             + File.separator + "logTest" + File.separator;
 
         logFileConfig.backupFile = logFileConfig.logFileDir + "applog0.txt";
         logFileConfig.curWriteFile = logFileConfig.logFileDir + "applog1.txt";
         logFileConfig.maxLogFileLength = 1024 * 1024 * 3;
-        logFileConfig.maxMemoryLogSize = 1024 * 1024 * 5;
-        logFileConfig.maxMsgCachedCount = 10000;
+        logFileConfig.maxLogMemoryCacheSize = 1024 * 256;
         //Logger.init(new FileTree(Logger.VERBOSE, logFileConfig));
         //Logger.init(new LogcatTree(Logger.VERBOSE), new FileTree(Logger.VERBOSE, logFileConfig));
-        Logger.init(1024 * 1024, new LogcatTree(Logger.VERBOSE), new FileTree2(Logger.VERBOSE, logFileConfig));
+        Logger.init(1024 * 1024, new LogcatTree(Logger.VERBOSE), new LogCacheTree(Logger.VERBOSE, logFileConfig));
     }
 
     @Test
     public void testPrintlnLogInLooper() {
-        //        LogFileConfig logFileConfig = new LogFileConfig();
+        //        LogCacheConfig logFileConfig = new LogCacheConfig();
         //        logFileConfig.logFileDir = Environment.getExternalStorageDirectory()
         //            + File.separator + "logTest" + File.separator;
         //        logFileConfig.backupFile = logFileConfig.logFileDir + "applog0.txt";
@@ -66,11 +64,11 @@ public class LogTest {
         for (int i = 0; i < count; i++) {
             long startTime1 = System.nanoTime();
             //Logger.info(TAG, "this is test file tree, log num = " + i);
-            //logcatTree.handleMsg(Logger.INFO, TAG,  "this is test file tree, log num = " + i,  null);
-            //logcatTree.handleMsg(Logger.INFO, TAG,  msgs[i],  null);
-            // Logger里面直接调用LogcatTree.handleMsg 大约需要21us
+            //logcatTree.handleMsgOnCalledThread(Logger.INFO, TAG,  "this is test file tree, log num = " + i,  null);
+            //logcatTree.handleMsgOnCalledThread(Logger.INFO, TAG,  msgs[i],  null);
+            // Logger里面直接调用LogcatTree.handleMsgOnCalledThread 大约需要21us
             Logger.info(TAG, msgs[i]);
-            //treeManager.handleMsg(Logger.INFO, TAG, msgs[i], null);
+            //treeManager.handleMsgOnCalledThread(Logger.INFO, TAG, msgs[i], null);
             long finishTime1 = System.nanoTime();
             //Log.i(TAG, i + " msg take time = " + (finishTime1 - startTime1) / 1000);
             //SystemClock.sleep(500);
@@ -78,6 +76,18 @@ public class LogTest {
         long finishTime = System.currentTimeMillis();
 
         Log.i(TAG, "println count = " + count + " msg, take time = " + (finishTime - startTime));
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Log.i(TAG, "now print memory cached logs");
+        List<byte[]> bytes = Logger.getMemoryCachedMsg();
+        for (byte[] bytes1 : bytes){
+            Logger.info(TAG, "cached msg = " + new String(bytes1));
+        }
+
         try {
             Thread.sleep(100000);
         } catch (InterruptedException e) {
