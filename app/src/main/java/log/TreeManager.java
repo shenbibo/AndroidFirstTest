@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author sky on 2018/2/26
  */
 final class TreeManager implements LogInterface, LogTreeManagerInterface {
+
     private static final int THREAD_CLOSED = -2;
     private static final int REQUEST_THREAD_CLOSE = -1;
     private static final int THREAD_RUNNING = 0;
@@ -25,13 +26,11 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
     private final CopyOnWriteArrayList<LogTree> TREES = new CopyOnWriteArrayList<>();
     private final Queue<LogData> MSG_QUEUE = new ConcurrentLinkedQueue<>();
     private final BlockingQueue<LogData> MSG_QUEUE_2 = new LinkedBlockingQueue<>();
-    private final Object LOCK = new Object();
 
     /**
      * 在内存中日志队列的最大值
      */
     private int maxMemoryLogSize;
-    private AtomicBoolean isClearCalled = new AtomicBoolean(false);
     private AtomicBoolean isInitCalled = new AtomicBoolean(false);
     private AtomicInteger memoryLogSize = new AtomicInteger(0);
     /**
@@ -44,7 +43,7 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
     private Thread msgDispatcherThread;
 
     public synchronized void init(int maxMemoryLogSize) {
-        if (/*isClearCalled.get() || */isInitCalled.get()) {
+        if (isInitCalled.get()) {
             return;
         }
         isInitCalled.set(true);
@@ -55,36 +54,6 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
 
     @Override
     public void handleMsg(int priority, String tag, String msg, Throwable tr) {
-        //        if (TREES.isEmpty()) {
-        //            return;
-        //        }
-
-        //long startTime = System.nanoTime();
-        // new一个对象大约需要87us，使用set方法大概70us
-        // LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
-        // logData.set(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
-        //long finishTime = System.nanoTime();
-        //Log.i("Logger", "create logDataTime = " + (finishTime - startTime) / 1000);
-
-        //long startTime2 = System.nanoTime();
-        //                for (LogTree tree : TREES) {
-        //                    tree.prepareLog(logData);
-        //                }
-        // for 循环比较耗时
-        //        for (LogTree tree : TREES) {
-        //            tree.prepareLog(priority, tag, msg, tr);
-        //        }
-        //        for(int i = 0; i < TREES.size(); i++){
-        //            TREES.get(i).prepareLog(logData);
-        //        }
-        // logcatTree.prepareLog(logData);
-        //logcatTree.handleMsg(priority, tag, msg, tr);
-
-        //        for (int i = 0; i < TREES.size(); i++){
-        //           TREES.get(i).prepareLog(priority, tag, msg, tr);
-        //        }
-        //long finishTime2 = System.nanoTime();
-        //Log.i("Logger", "loop time = " + (finishTime2 - startTime2) / 1000);
 
         LogTree logTree = TREES.get(0);
         if (logTree != null) {
@@ -107,13 +76,13 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
 
     @Override
     public synchronized boolean addLogTree(LogTree logTree) {
-        return !(/*isClearCalled.get() || */logTree == null) && addTree(logTree);
+        return !(logTree == null) && addTree(logTree);
 
     }
 
     @Override
     public synchronized boolean addLogTrees(LogTree... logTrees) {
-        if (/*isClearCalled.get() || */logTrees == null || logTrees.length == 0) {
+        if (logTrees == null || logTrees.length == 0) {
             return false;
         }
 
@@ -135,7 +104,7 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
 
     @Override
     public synchronized boolean removeLogTree(LogTree logTree) {
-        if (/*isClearCalled.get() ||*/ logTree == null) {
+        if ( logTree == null) {
             return false;
         }
 

@@ -172,20 +172,12 @@ public final class Logger {
         println(ERROR, tag, msg, tr);
     }
 
-    //    /**
-    //     * stop and release all log collect.
-    //     * after call this, if want to use logger again, must call Logger.init first
-    //     */
-    //    public static void release() {
-    //        if (logImpl != null) {
-    //            logImpl.release();
-    //            logImpl = null;
-    //        }
-    //    }
-
+    private static final String TAG = "LogTest";
     private static void println(int priority, String tag, String msg, Throwable tr) {
+        long startTime = System.nanoTime();
         logImpl.handleMsg(priority, tag, msg, tr);
-        //logcatTree.prepareLog(priority, tag, msg, tr);
+        long endTime = System.nanoTime();
+        Log.i(TAG, "handleMsg = " + (endTime - startTime) / 1000);
     }
 
     public static void init(int maxMemoryLogSize, LogTree... logTrees) {
@@ -226,11 +218,6 @@ public final class Logger {
         public boolean clearTrees() {
             return treeManager.clearTrees();
         }
-
-//        @Override
-//        public void close() {
-//            treeManager.close();
-//        }
 
         void handleMsg(int priority, String tag, String msg, Throwable tr) {
             treeManager.handleMsg(priority, tag, msg, tr);
