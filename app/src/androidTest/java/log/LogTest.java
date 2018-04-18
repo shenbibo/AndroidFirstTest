@@ -10,6 +10,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -33,7 +36,7 @@ public class LogTest {
         logFileConfig.backupFile = logFileConfig.logFileDir + "applog0.txt";
         logFileConfig.curWriteFile = logFileConfig.logFileDir + "applog1.txt";
         logFileConfig.maxLogFileLength = 1024 * 1024 * 3;
-        logFileConfig.maxLogMemoryCacheSize = 1024 * 256;
+        logFileConfig.maxLogMemoryCacheSize = 1024 * 512;
         //Logger.init(new FileTree(Logger.VERBOSE, logFileConfig));
         //Logger.init(new LogcatTree(Logger.VERBOSE), new FileTree(Logger.VERBOSE, logFileConfig));
         Logger.init(1024 * 1024, new LogcatTree(Logger.VERBOSE), new LogCacheTree(Logger.VERBOSE, logFileConfig));
@@ -70,7 +73,7 @@ public class LogTest {
             Logger.info(TAG, msgs[i]);
             //treeManager.handleMsgOnCalledThread(Logger.INFO, TAG, msgs[i], null);
             long finishTime1 = System.nanoTime();
-            //Log.i(TAG, i + " msg take time = " + (finishTime1 - startTime1) / 1000);
+            Log.i(TAG, i + " msg take time = " + (finishTime1 - startTime1) / 1000);
             //SystemClock.sleep(500);
         }
         long finishTime = System.currentTimeMillis();
@@ -83,10 +86,10 @@ public class LogTest {
             e.printStackTrace();
         }
         Log.i(TAG, "now print memory cached logs");
-        List<byte[]> bytes = Logger.getMemoryCachedMsg();
-        for (byte[] bytes1 : bytes){
-            Logger.info(TAG, "cached msg = " + new String(bytes1));
-        }
+//        List<byte[]> bytes = Logger.getMemoryCachedMsg();
+//        for (byte[] bytes1 : bytes) {
+//            Logger.info(TAG, "cached msg = " + new String(bytes1));
+//        }
 
         try {
             Thread.sleep(100000);
@@ -97,7 +100,7 @@ public class LogTest {
 
     @Test
     public void testPrintlnLogInLooper2() {
-        int count = 1;
+        int count = 100;
         String[] msgs = new String[count];
         for (int i = 0; i < count; i++) {
             msgs[i] = "this is test file tree, log num = " + i;
@@ -130,13 +133,13 @@ public class LogTest {
         for (int i = 0; i < count; i++) {
             msgs[i] = "this is test file tree, log num = " + i;
         }
-        //        long startTime = System.currentTimeMillis();
-        //        for (int i = 0; i < count; i++) {
-        //            Logger.info(TAG, msgs[i]);
-        //        }
-        //        long finishTime = System.currentTimeMillis();
-        //
-        //        Log.i(TAG, "Logger.info println, count = " + count + " msg, take time = " + (finishTime - startTime));
+        long startTime = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            Logger.info(TAG, msgs[i]);
+        }
+        long finishTime = System.currentTimeMillis();
+
+        Log.i(TAG, "Logger.info println, count = " + count + " msg, take time = " + (finishTime - startTime));
 
         long startTime1 = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
@@ -154,7 +157,7 @@ public class LogTest {
         for (int i = 0; i < THREAD_COUNT; i++) {
             new PrintLogThread(true).start();
         }
-
+        new PrintMemoryCacheLogThread().start();
         Thread.sleep(100);
         long startTime = System.currentTimeMillis();
         synchronized (LOCK) {
@@ -165,23 +168,24 @@ public class LogTest {
         long finishTime = System.currentTimeMillis();
         long loggerTime = finishTime - startTime;
 
-        for (int i = 0; i < THREAD_COUNT; i++) {
-            new PrintLogThread(false).start();
-        }
+        //        for (int i = 0; i < THREAD_COUNT; i++) {
+        //            new PrintLogThread(false).start();
+        //        }
 
         Thread.sleep(100);
+
         long startTime1 = System.currentTimeMillis();
         synchronized (LOCK) {
             LOCK.notifyAll();
         }
 
-        countDownLatch2.await();
+        //        countDownLatch2.await();
         long finishTime1 = System.currentTimeMillis();
         long logTime = finishTime1 - startTime1;
 
         Log.i(TAG, "loggerTime = " + loggerTime + ", logcatTime = " + logTime);
 
-        Thread.sleep(60000);
+        Thread.sleep(600000);
 
     }
 
@@ -208,7 +212,7 @@ public class LogTest {
                 }
             }
 
-            int count = 2000;
+            int count = 1000;
             String[] msgs = new String[count];
             int threadId = Process.myTid();
             for (int i = 0; i < count; i++) {
@@ -220,6 +224,11 @@ public class LogTest {
                     Logger.info(TAG, msgs[i]);
                 } else {
                     Log.i(TAG, msgs[i]);
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
             long finishTime = System.currentTimeMillis();
@@ -234,6 +243,47 @@ public class LogTest {
             }
 
 
+        }
+    }
+
+    private class PrintMemoryCacheLogThread extends Thread {
+        @Override
+        public void run()  {
+            FileOutputStream fos = null ;
+            try {
+                fos = new FileOutputStream("/mnt/sdcard/logFile.txt");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            for (int k = 0; k < 1000; k++) {
+                Log.i(TAG, "start print memory cached logs index = " + k);
+                List<byte[]> bytes = Logger.getMemoryCachedMsg();
+                //StringBuilder stringBuilder = new StringBuilder();
+                for (byte[] bytes1 : bytes) {
+                    Logger.info(TAG, "cached msg = " + new String(bytes1));
+                    //Log.i(TAG, "cached msg = " + new String(bytes1));
+//                    stringBuilder.append(new String(bytes1));
+//                    try {
+//                        fos.write(bytes1);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+                }
+                //Log.i(TAG, stringBuilder.toString());
+                Log.i(TAG, "finish print memory cached logs index = " + k);
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

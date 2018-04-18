@@ -32,7 +32,7 @@ final class LogHelper {
     /**
      * 2018-02-26 16:53:25.123
      */
-    private static final String DATA_FORMAT = "YYYY-MM-dd HH:mm:ss:SSS";
+    private static final String DATA_FORMAT = "yyyy-MM-dd HH:mm:ss:SSS";
 
     /**
      * 获取堆栈，使用系统自带的获取堆栈的方法，效率更高

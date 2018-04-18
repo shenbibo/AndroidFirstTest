@@ -1,14 +1,10 @@
 package log;
 
 
-import android.os.Process;
-
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,10 +19,13 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
     private static final int THREAD_CLOSED = -2;
     private static final int REQUEST_THREAD_CLOSE = -1;
     private static final int THREAD_RUNNING = 0;
+    private LogcatTree logcatTree = new LogcatTree(Logger.VERBOSE);
+    private LogData logData = new LogData(0, Logger.INFO, "LogTest", "this is data test", null, 1234);
 
     private final CopyOnWriteArrayList<LogTree> TREES = new CopyOnWriteArrayList<>();
     private final Queue<LogData> MSG_QUEUE = new ConcurrentLinkedQueue<>();
-    private final BlockingQueue<LogData> MSG_QUEUE_2 = new LinkedBlockingQueue<>();
+    //private final Queue<LogData> MSG_QUEUE = new LinkedList<>();
+    private final Queue<LogData> CACHE_QUEUE = new ConcurrentLinkedQueue<>();
 
     /**
      * 在内存中日志队列的最大值
@@ -56,23 +55,36 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
     @Override
     public void handleMsg(int priority, String tag, String msg, Throwable tr) {
 
-        LogTree logTree = TREES.get(0);
-        if (logTree != null) {
-            logTree.prepareLog(priority, tag, msg, tr);
-        }
+        //        LogTree logTree = TREES.get(0);
+        //        if (logTree != null) {
+        //            logTree.prepareLog(priority, tag, msg, tr);
+        //        }
+        logcatTree.handleMsgOnCalledThread(priority, tag, msg, tr);
 
         // 只有logcat一个则不需要封装成对象，或者在数据队列中已经到最大值了
-        if (TREES.size() == 1 || memoryLogSize.get() > maxMemoryLogSize) {
-            return;
-        }
+        //if (TREES.size() == 1 /*|| memoryLogSize.get() > maxMemoryLogSize*/) {
+        //    return;
+        //}
 
-        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
+        //System.currentTimeMillis()可能需要发费3-4us, Process.myTid可能需要5-6us
+        //LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
+        LogData logData = new LogData(0, priority, tag, msg, tr, 0);
+        //使用从队列中获取原来已经生成的logdata对象的方式并不可取，消耗的时间比直接new一个对象还要消耗的多
+        //LogData logData = getLogData();
+        //logData.set(0, priority, tag, msg, tr, 0);
 
-        logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
-        memoryLogSize.getAndAdd(logData.dataSize);
 
+        //logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
+        //memoryLogSize.getAndAdd(logData.dataSize);
+        // 单线程时执行ConcurrentLinkedQueue.offer需要13-15us
+        //MSG_QUEUE.offer(logData);
+        //long startTime = System.nanoTime();
+        // LinkedList.add大概需要7-8us
+        //MSG_QUEUE.add(logData);
+        // 单线程时执行ConcurrentLinkedQueue.offer需要12-16us
         MSG_QUEUE.offer(logData);
-        //MSG_QUEUE_2.offer(logData);
+        //long finishTime = System.nanoTime();
+        //Log.i("LogTest", "MSG_QUEUE.offer time = " + (finishTime - startTime) / 1000);
     }
 
     @Override
@@ -143,6 +155,15 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
             }
         }
         return null;
+    }
+
+    private LogData getLogData() {
+        LogData logData = CACHE_QUEUE.poll();
+        if (logData == null) {
+            logData = new LogData();
+        }
+
+        return logData;
     }
 
     private boolean removeTree(LogTree logTree) {
@@ -241,42 +262,5 @@ final class TreeManager implements LogInterface, LogTreeManagerInterface {
                 logTree.prepareLog(logData);
             }
         }
-    }
-
-    class MsgDispatcherThread2 extends Thread {
-
-        @Override
-        public void run() {
-            try {
-
-                for (; isThreadStateRunning(); ) {
-                    LogData logData = null;
-                    try {
-                        logData = MSG_QUEUE_2.take();
-                    } catch (Exception exception) {
-                        exception.printStackTrace();
-                    }
-
-                    if (logData == null) {
-                        continue;
-                    }
-
-                    //Log.i("LogTest3", logData.msg);
-
-                    memoryLogSize.getAndAdd(-logData.dataSize);
-
-                    for (LogTree logTree : TREES) {
-                        if (logTree instanceof LogcatTree) {
-                            continue;
-                        }
-
-                        logTree.prepareLog(logData);
-                    }
-                }
-            } finally {
-                dispatcherThreadState.set(THREAD_CLOSED);
-            }
-        }
-
     }
 }

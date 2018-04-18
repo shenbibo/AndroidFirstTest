@@ -5,7 +5,7 @@ import android.util.Log;
 import java.util.List;
 
 /**
- * 一句话注释。
+ * 日志框架类
  * 详细内容。
  *
  * @author sky on 2018/2/26
@@ -100,9 +100,8 @@ public final class Logger {
      * @param msg The message you would like logged.
      */
     public static void info(String tag, String msg) {
-        println(INFO, tag, msg, null);
-        //logcatTree.handleMsgOnCalledThread(Logger.INFO, tag, msg, null);
-        //logcatTree.prepareLog(Logger.INFO, tag, msg, null);
+        //println(INFO, tag, msg, null);
+        treeManager.handleMsg(INFO, tag, msg, null);
     }
 
     /**
@@ -177,18 +176,20 @@ public final class Logger {
     private static final String TAG = "LogTest";
 
     public static void println(int priority, String tag, String msg, Throwable tr) {
-        //long startTime = System.nanoTime();
-        logImpl.handleMsg(priority, tag, msg, tr);
-        //long endTime = System.nanoTime();
-        //Log.i(TAG, "handleMsgOnCalledThread = " + (endTime - startTime) / 1000);
+        //logImpl.handleMsg(priority, tag, msg, tr);
+        //logImpl.
+        treeManager.handleMsg(priority, tag, msg, tr);
     }
 
+    private static TreeManager treeManager = new TreeManager();
     public static void init(int maxMemoryLogSize, LogTree... logTrees) {
-        if (logImpl == null) {
-            logImpl = new LogImpl();
-            logImpl.init(maxMemoryLogSize);
-            logImpl.addLogTrees(logTrees);
-        }
+//        if (logImpl == null) {
+//            logImpl = new LogImpl();
+//            logImpl.init(maxMemoryLogSize);
+//            logImpl.addLogTrees(logTrees);
+//        }
+        treeManager.init(maxMemoryLogSize);
+        treeManager.addLogTrees(logTrees);
     }
 
     /**
@@ -203,7 +204,7 @@ public final class Logger {
     }
 
     public static class LogImpl implements LogTreeManagerInterface {
-        private TreeManager treeManager = new TreeManager();
+        TreeManager treeManager = new TreeManager();
 
         public void init(int maxMemoryLogSize) {
             treeManager.init(maxMemoryLogSize);

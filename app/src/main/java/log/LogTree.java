@@ -40,8 +40,14 @@ public abstract class LogTree {
         handleMsgOnCalledThread(priority, tag, msg, tr);
     }
 
+    /**
+     * 该方法将会在子线程中调用，基于性能考虑，除了Logcat的日志外，其他的都是在子线程调用
+     * */
     protected void handleMsgOnSubThread(final LogData logData) {}
 
+    /**
+     * 在打印日志的线程中，目前仅适合LogcatTree
+     * */
     protected void handleMsgOnCalledThread(int priority, String tag, String msg, Throwable tr) {}
 
     /**
