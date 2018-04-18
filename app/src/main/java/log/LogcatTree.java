@@ -1,14 +1,15 @@
 package log;
 
+import android.annotation.SuppressLint;
 import android.util.Log;
 
 /**
- * 一句话注释。
- * 详细内容。
+ * logcat日志打印树
  *
  * @author sky on 2018/2/26
  */
-public class LogcatTree extends LogTree {
+public class LogcatTree extends LogTree implements HandleLog {
+
     /**
      * 构造器
      *
@@ -19,10 +20,49 @@ public class LogcatTree extends LogTree {
     }
 
     @Override
-    protected void handleMsgOnCalledThread(int priority, String tag, String msg, Throwable tr) {
-//        String tempStr = tr == null ? msg : msg
-//            + '\n' + LogHelper.getStackTraceString(tr);
-//        Log.println(priority, tag, tempStr);
-        Log.println(priority, tag, msg);
+    public final void handleMsg(LogData logData) {
+        throw new UnsupportedOperationException("call handleMsg(int, String, String, Throwable) instead!!");
+    }
+
+    @SuppressLint("LogTagMismatch")
+    @Override
+    public void handleMsg(int priority, String tag, String msg, Throwable tr) {
+        if (isLoggable(priority)) {
+            Log.println(priority, tag, msg + '\n' + LogHelper.getStackTraceString(tr));
+        }
+    }
+
+    @SuppressLint("LogTagMismatch")
+    @Override
+    public void handleMsg(int priority, String tag, String msg) {
+        if (isLoggable(priority)) {
+            Log.println(priority, tag, msg);
+        }
+    }
+
+    public static final class EmptyLogcatTree extends LogcatTree {
+        /**
+         * 空Logcat对象
+         */
+        public static final EmptyLogcatTree EMPTY_LOGCAT_TREE = new EmptyLogcatTree(Logger.ASSERT);
+
+        /**
+         * 构造器
+         *
+         * @param priority 允许输出的日志优先级
+         */
+        private EmptyLogcatTree(int priority) {
+            super(priority);
+        }
+
+        @Override
+        public void handleMsg(int priority, String tag, String msg) {
+            // empty
+        }
+
+        @Override
+        public void handleMsg(int priority, String tag, String msg, Throwable tr) {
+            // empty
+        }
     }
 }

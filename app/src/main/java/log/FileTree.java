@@ -1,9 +1,6 @@
 package log;
 
 
-import android.os.Process;
-import android.util.Log;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -65,7 +62,7 @@ public class FileTree extends LogTree {
     }
 
     @Override
-    protected void handleMsgOnSubThread(final LogData logData) {
+    protected void onMsg(final LogData logData) {
         //long startTime2 = System.nanoTime();
         //        if (memoryLogSize.get() > maxMemoryLogSize) {
         //            return;
@@ -86,32 +83,32 @@ public class FileTree extends LogTree {
         //Log.i("Logger", "mmsgQueue.offer Time = " + (finishTime1 - startTime1) / 1000);
     }
 
-    @Override
-    protected void handleMsgOnCalledThread(int priority, String tag, String msg, Throwable tr) {
-        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
-
-        // 初次耗时约17us，后续可能是4us
-        long startTime2 = System.nanoTime();
-        if (memoryLogSize.get() > maxMemoryLogSize) {
-            return;
-        }
-        long finishTime2 = System.nanoTime();
-        Log.i("Logger", "checkSize Time = " + (finishTime2 - startTime2) / 1000);
-
-        // 初次耗时可能是24us，后续可能是12
-        long startTime = System.nanoTime();
-        // 注意此处是一个估值在Android中String默认采用utf-8,此处大小乘以2倍，实际字符可能没有这么多
-        logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
-        memoryLogSize.getAndAdd(logData.dataSize);
-        long finishTime = System.nanoTime();
-        Log.i("Logger", "memoryLogSize Time = " + (finishTime - startTime) / 1000);
-
-        // 初次耗时可能是29，后续可能是18us，如果是连续循坏调用时间接近3us
-        long startTime1 = System.nanoTime();
-        msgQueue.offer(logData);
-        long finishTime1 = System.nanoTime();
-        Log.i("Logger", "mmsgQueue.offer Time = " + (finishTime1 - startTime1) / 1000);
-    }
+//    @Override
+//    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {
+//        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, Process.myTid());
+//
+//        // 初次耗时约17us，后续可能是4us
+//        long startTime2 = System.nanoTime();
+//        if (memoryLogSize.get() > maxMemoryLogSize) {
+//            return;
+//        }
+//        long finishTime2 = System.nanoTime();
+//        Log.i("Logger", "checkSize Time = " + (finishTime2 - startTime2) / 1000);
+//
+//        // 初次耗时可能是24us，后续可能是12
+//        long startTime = System.nanoTime();
+//        // 注意此处是一个估值在Android中String默认采用utf-8,此处大小乘以2倍，实际字符可能没有这么多
+//        logData.dataSize = (logData.tag.length() + logData.msg.length()) << 1;
+//        memoryLogSize.getAndAdd(logData.dataSize);
+//        long finishTime = System.nanoTime();
+//        Log.i("Logger", "memoryLogSize Time = " + (finishTime - startTime) / 1000);
+//
+//        // 初次耗时可能是29，后续可能是18us，如果是连续循坏调用时间接近3us
+//        long startTime1 = System.nanoTime();
+//        msgQueue.offer(logData);
+//        long finishTime1 = System.nanoTime();
+//        Log.i("Logger", "mmsgQueue.offer Time = " + (finishTime1 - startTime1) / 1000);
+//    }
 
     /**
      * 调用该方法，会等待子线程释放完成后，才返回。

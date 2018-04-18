@@ -1,16 +1,14 @@
 package log;
 
 
-import android.support.annotation.NonNull;
+//import android.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -49,7 +47,7 @@ public class LogCacheTree extends LogTree {
     }
 
     @Override
-    protected void handleMsgOnSubThread(final LogData logData) {
+    protected void onMsg(final LogData logData) {
         if (isReleaseCalled()) {
             return;
         }
@@ -139,7 +137,7 @@ public class LogCacheTree extends LogTree {
      */
     List<byte[]> getMemoryCachedMsg() {
         if (msgCacheQueue == null) {
-            return null;
+            return new ArrayList<>();
         }
 
         return new ArrayList<>(msgCacheQueue);
@@ -165,7 +163,7 @@ public class LogCacheTree extends LogTree {
         return curWriteFileLength >= logFileConfig.maxLogFileLength;
     }
 
-    @NonNull
+    //@NonNull
     private StringBuilder buildMsg(LogData logData) {
         StringBuilder msgBuilder = new StringBuilder(256);
 

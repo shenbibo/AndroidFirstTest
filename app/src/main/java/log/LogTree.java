@@ -24,31 +24,52 @@ public abstract class LogTree {
         return priority >= this.priority;
     }
 
-    final void prepareLog(final LogData logData) {
+    /**
+     * 使用封装的LogData
+     */
+    public void handleMsg(final LogData logData) {
         if (!isLoggable(logData.priority)) {
-            return;
+            onMsg(logData);
         }
-
-        handleMsgOnSubThread(logData);
     }
 
-    final void prepareLog(int priority, String tag, String msg, Throwable tr) {
-        if (!isLoggable(priority)) {
-            return;
-        }
+    //    /**
+    //     * 在TreeManger中调用，使用原始数据
+    //     */
+    //    public void handleMsg(int priority, String tag, String msg, Throwable tr) {
+    //        if (!isLoggable(priority)) {
+    //            return;
+    //        }
+    //
+    //        handleMsg(priority, tag, msg, tr);
+    //    }
+    //
+    //    /**
+    //     * 使用原始未封装数据
+    //     */
+    //    public void handleMsg(int priority, String tag, String msg) {
+    //        if (!isLoggable(priority)) {
+    //            return;
+    //        }
+    //
+    //        handleMsg(priority, tag, msg);
+    //    }
 
-        handleMsgOnCalledThread(priority, tag, msg, tr);
-    }
 
     /**
      * 该方法将会在子线程中调用，基于性能考虑，除了Logcat的日志外，其他的都是在子线程调用
-     * */
-    protected void handleMsgOnSubThread(final LogData logData) {}
+     */
+    protected void onMsg(final LogData logData) {}
 
-    /**
-     * 在打印日志的线程中，目前仅适合LogcatTree
-     * */
-    protected void handleMsgOnCalledThread(int priority, String tag, String msg, Throwable tr) {}
+    //    /**
+    //     * 打印日志
+    //     */
+    //    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {}
+    //
+    //    /**
+    //     * 打印日志
+    //     */
+    //    protected void handleMsg(int priority, String tag, String msg) {}
 
     /**
      * 停止日志打印时调用，子类必须调用super.release

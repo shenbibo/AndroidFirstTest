@@ -16,10 +16,14 @@ public class LogCacheConfig {
      */
     public String backupFile;
     public String curWriteFile;
+
+    /**
+     * 保存到本地日志文件中的最大长度。
+     * */
     public long maxLogFileLength;
 
     /**
-     * 缓存到最新内存中的日志大小，如果为0，则表示不缓存在内存中
+     * 缓存到最新内存中的日志大小，如果<=0，则表示不缓存在内存中
      * */
     public int maxLogMemoryCacheSize;
 }
