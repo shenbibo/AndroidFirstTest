@@ -33,43 +33,10 @@ public abstract class LogTree {
         }
     }
 
-    //    /**
-    //     * 在TreeManger中调用，使用原始数据
-    //     */
-    //    public void handleMsg(int priority, String tag, String msg, Throwable tr) {
-    //        if (!isLoggable(priority)) {
-    //            return;
-    //        }
-    //
-    //        handleMsg(priority, tag, msg, tr);
-    //    }
-    //
-    //    /**
-    //     * 使用原始未封装数据
-    //     */
-    //    public void handleMsg(int priority, String tag, String msg) {
-    //        if (!isLoggable(priority)) {
-    //            return;
-    //        }
-    //
-    //        handleMsg(priority, tag, msg);
-    //    }
-
-
     /**
      * 该方法将会在子线程中调用，基于性能考虑，除了Logcat的日志外，其他的都是在子线程调用
      */
     protected void onMsg(final LogData logData) {}
-
-    //    /**
-    //     * 打印日志
-    //     */
-    //    protected void handleMsg(int priority, String tag, String msg, Throwable tr) {}
-    //
-    //    /**
-    //     * 打印日志
-    //     */
-    //    protected void handleMsg(int priority, String tag, String msg) {}
 
     /**
      * 停止日志打印时调用，子类必须调用super.release

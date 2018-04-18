@@ -89,20 +89,6 @@ final class TreeManager implements HandleLog, LogTreeManager {
         msgQueue.offer(logData);
     }
 
-    //    private void offerMsgToQueue(int priority, String tag, String msg, Throwable tr) {
-    //        if (trees.isEmpty() || logCountInQueue.get() > maxLogCountInQueue) {
-    //            return;
-    //        }
-    //
-    //        // System.currentTimeMillis()可能需要发费3-4us, Process.myTid可能需要5-6us
-    //        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, 0);
-    //        logCountInQueue.incrementAndGet();
-    //
-    //        // LinkedList.add大概需要7-8us
-    //        // 单线程时执行ConcurrentLinkedQueue.offer需要12-16us
-    //        msgQueue.offer(logData);
-    //    }
-
     @Override
     public synchronized boolean addLogTree(LogTree logTree) {
         return !(logTree == null) && addTree(logTree);

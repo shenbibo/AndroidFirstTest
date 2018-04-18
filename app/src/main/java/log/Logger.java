@@ -38,7 +38,7 @@ public final class Logger {
      */
     public static final int ASSERT = 7;
 
-    //private static LogImpl logImpl;
+    private static TreeManager treeManager;
 
     /**
      * Send a {@link #VERBOSE} log message.
@@ -170,11 +170,6 @@ public final class Logger {
      * 打印日志
      */
     public static void println(int priority, String tag, String msg, Throwable tr) {
-        //long startTime = System.nanoTime();
-        //logImpl.handleMsg(priority, tag, msg, tr);
-        //Log.println(priority, tag, msg);
-        //long finishTime = System.nanoTime();
-        //Log.i("LogTest", "execute time = " + (finishTime - startTime) / 1000);
         treeManager.handleMsg(priority, tag, msg, tr);
     }
 
@@ -182,21 +177,13 @@ public final class Logger {
      * 打印日志2
      */
     public static void println(int priority, String tag, String msg) {
-        //logImpl.handleMsg(priority, tag, msg);
         treeManager.handleMsg(priority, tag, msg);
     }
-
-    private static TreeManager treeManager;
 
     /**
      * 初始化
      */
     public static void init(int maxMemoryLogCount, LogTree... logTrees) {
-        //        if (logImpl == null) {
-        //            logImpl = new LogImpl();
-        //            logImpl.init(maxMemoryLogCount);
-        //            logImpl.addLogTrees(logTrees);
-        //        }
         if (treeManager == null) {
             treeManager = new TreeManager(maxMemoryLogCount);
             treeManager.addLogTrees(logTrees);
@@ -207,7 +194,6 @@ public final class Logger {
      * 获取内存缓存最新日志，注意必要添加LogCacheTree，并且LogCacheConfig.maxLogMemoryCacheSize > 0, 否则返回空列表
      */
     public static List<byte[]> getMemoryCachedMsg() {
-        //return logImpl.getMemoryCachedMsg();
         return treeManager.getMemoryCachedMsg();
     }
 
@@ -217,49 +203,4 @@ public final class Logger {
     public static LogTreeManager getLogManager() {
         return treeManager;
     }
-
-    //    /**
-    //     * 日志辅助管理对象
-    //     */
-    //    public static final class LogImpl implements LogTreeManager, HandleLog {
-    //        private TreeManager treeManager = new TreeManager();
-    //
-    //        public void init(int maxMemoryLogSize) {
-    //            treeManager.init(maxMemoryLogSize);
-    //        }
-    //
-    //        @Override
-    //        public boolean addLogTree(LogTree logTree) {
-    //            return treeManager.addLogTree(logTree);
-    //        }
-    //
-    //        @Override
-    //        public boolean addLogTrees(LogTree... logTrees) {
-    //            return treeManager.addLogTrees(logTrees);
-    //        }
-    //
-    //        @Override
-    //        public boolean removeLogTree(LogTree logTree) {
-    //            return treeManager.removeLogTree(logTree);
-    //        }
-    //
-    //        @Override
-    //        public boolean clearTrees() {
-    //            return treeManager.clearTrees();
-    //        }
-    //
-    //        @Override
-    //        public void handleMsg(int priority, String tag, String msg) {
-    //            treeManager.handleMsg(priority, tag, msg);
-    //        }
-    //
-    //        @Override
-    //        public void handleMsg(int priority, String tag, String msg, Throwable tr) {
-    //            treeManager.handleMsg(priority, tag, msg, tr);
-    //        }
-    //
-    //        List<byte[]> getMemoryCachedMsg() {
-    //            return treeManager.getMemoryCachedMsg();
-    //        }
-    //    }
 }
