@@ -57,7 +57,6 @@ final class TreeManager implements HandleLog, LogTreeManager {
     public void handleMsg(int priority, String tag, String msg) {
         logcatTree.handleMsg(priority, tag, msg);
 
-        //offerMsgToQueue(priority, tag, msg, null);
         if (trees.isEmpty() || logCountInQueue.get() > maxLogCountInQueue) {
             return;
         }
@@ -221,6 +220,7 @@ final class TreeManager implements HandleLog, LogTreeManager {
         public void run() {
             try {
                 for (; isThreadStateRunning(); ) {
+                    // poll大约8-16us
                     LogData logData = msgQueue.poll();
 
                     if (sleepIfMsgNull(logData)) {
@@ -250,9 +250,18 @@ final class TreeManager implements HandleLog, LogTreeManager {
             return false;
         }
 
-        private void dispatchMsg(LogData logData) {
+        private void dispatchMsg(final LogData logData) {
+            String compoundMsg = null;
             for (LogTree logTree : trees) {
-                logTree.handleMsg(logData);
+                if (logTree.isAcceptCompoundMsg()) {
+                    if (compoundMsg == null) {
+                        // 耗时，大约发费1800us
+                        compoundMsg = LogHelper.compoundMsg(logData);
+                    }
+                    logTree.handleMsg(compoundMsg, logData);
+                } else {
+                    logTree.handleMsg(null, logData);
+                }
             }
         }
     }

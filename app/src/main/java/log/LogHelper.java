@@ -91,4 +91,21 @@ final class LogHelper {
                  .append(SPACE);
 
     }
+
+    /**
+     * 合成日志，样式为："2018-02-26 16:53:25.123 D/Tag(pid-tid)：msg + \n + getStackTraceString"
+     * <p><strong>该方法非常耗时，大约为1800us</strong>
+     * */
+    public static String compoundMsg(final LogData logData) {
+        StringBuilder msgBuilder = new StringBuilder(256);
+
+        LogHelper.getLogPrefix(msgBuilder, logData);
+        msgBuilder.append(logData.msg)
+                  .append(LogHelper.LINE_BREAK);
+        if (logData.tr != null) {
+            msgBuilder.append(LogHelper.getStackTraceString(logData.tr));
+            msgBuilder.append(LogHelper.LINE_BREAK);
+        }
+        return msgBuilder.toString();
+    }
 }

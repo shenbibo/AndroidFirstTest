@@ -34,8 +34,8 @@ public class LogCacheTree extends LogTree {
      * @param priority      日志输出优先级
      * @param logFileConfig 指定日志备份文件，当前写文件路径和单个文件最大字节数
      */
-    public LogCacheTree(int priority, LogCacheConfig logFileConfig) {
-        super(priority);
+    public LogCacheTree(int priority, boolean acceptCompoundMsg, LogCacheConfig logFileConfig) {
+        super(priority, acceptCompoundMsg);
 
         this.logFileConfig = logFileConfig;
 
@@ -45,12 +45,12 @@ public class LogCacheTree extends LogTree {
     }
 
     @Override
-    protected void onMsg(final LogData logData) {
+    protected void onMsg(String compoundMsg, final LogData logData) {
         if (isReleaseCalled()) {
             return;
         }
 
-        onMsgAndCheckFileLength(logData);
+        onMsgAndCheckFileLength(compoundMsg);
     }
 
     /**
@@ -94,16 +94,19 @@ public class LogCacheTree extends LogTree {
         return logFileConfig.logFileDir == null;
     }
 
-    private void onMsgAndCheckFileLength(LogData logData) {
+    private void onMsgAndCheckFileLength(String compoundMsg) {
         if (isFileCacheDisable() && isMsgMemoryCacheDisable()) {
             return;
         }
 
-        StringBuilder msgBuilder = buildMsg(logData);
-        byte[] msgBytes = msgBuilder.toString().getBytes();
+        // 大约30us
+        byte[] msgBytes = compoundMsg.getBytes();
         long length = msgBytes.length;
 
+        // 写入到文件大概是100us
         writeLogToFileIfNeed(msgBytes, length);
+
+        // 大约33us
         writeLogToMemoryCacheIfNeed(msgBytes, length);
     }
 
@@ -159,20 +162,6 @@ public class LogCacheTree extends LogTree {
 
     private boolean isCurFileSizeExceed() {
         return curWriteFileLength >= logFileConfig.maxLogFileLength;
-    }
-
-    //@NonNull
-    private StringBuilder buildMsg(LogData logData) {
-        StringBuilder msgBuilder = new StringBuilder(256);
-
-        LogHelper.getLogPrefix(msgBuilder, logData);
-        msgBuilder.append(logData.msg)
-                  .append(LogHelper.LINE_BREAK);
-        if (logData.tr != null) {
-            msgBuilder.append(LogHelper.getStackTraceString(logData.tr));
-            msgBuilder.append(LogHelper.LINE_BREAK);
-        }
-        return msgBuilder;
     }
 
     private void closeAndSetMsgStreamNull() {

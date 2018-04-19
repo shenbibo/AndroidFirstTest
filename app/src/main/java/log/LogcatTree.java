@@ -16,11 +16,11 @@ public class LogcatTree extends LogTree implements HandleLog {
      * @param priority 允许输出的日志优先级
      */
     public LogcatTree(int priority) {
-        super(priority);
+        super(priority, false);
     }
 
     @Override
-    public final void handleMsg(LogData logData) {
+    public final void handleMsg(String compoundMsg, LogData logData) {
         throw new UnsupportedOperationException("call handleMsg(int, String, String, Throwable) instead!!");
     }
 
