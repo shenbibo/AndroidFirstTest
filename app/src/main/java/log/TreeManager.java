@@ -1,6 +1,8 @@
 package log;
 
 
+import android.os.Process;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -22,6 +24,7 @@ final class TreeManager implements HandleLog, LogTreeManager {
     /**
      * 注意该对象没有使用volatile修饰这意味着在移除或添加logcat数时,
      * 可能导致变量的更改没有及时同步到调用handleMsg方法的线程上。
+     * 考虑到volatile带来的内存损失，这是可以接受的
      */
     private LogcatTree logcatTree;
     private final CopyOnWriteArrayList<LogTree> trees = new CopyOnWriteArrayList<>();
@@ -34,9 +37,9 @@ final class TreeManager implements HandleLog, LogTreeManager {
     private AtomicInteger logCountInQueue = new AtomicInteger(0);
 
     /**
-     * -2，表示未启动或者已经关闭
-     * -1，表示请求关闭
-     * 0， 表示已经正常启动
+     * -2(THREAD_CLOSED)，表示未启动或者已经关闭
+     * -1(REQUEST_THREAD_CLOSE)，表示请求关闭
+     * 0(THREAD_RUNNING)， 表示已经正常启动
      */
     private AtomicInteger dispatcherThreadState = new AtomicInteger(THREAD_CLOSED);
 
@@ -48,7 +51,7 @@ final class TreeManager implements HandleLog, LogTreeManager {
     /**
      * 构造器
      */
-    public TreeManager(int maxLogCountInQueue) {
+    TreeManager(int maxLogCountInQueue) {
         this.maxLogCountInQueue = maxLogCountInQueue;
         setLogcatTreeEmpty();
     }
@@ -56,36 +59,13 @@ final class TreeManager implements HandleLog, LogTreeManager {
     @Override
     public void handleMsg(int priority, String tag, String msg) {
         logcatTree.handleMsg(priority, tag, msg);
-
-        if (trees.isEmpty() || logCountInQueue.get() > maxLogCountInQueue) {
-            return;
-        }
-
-        // System.currentTimeMillis()可能需要发费3-4us, Process.myTid可能需要5-6us
-        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, null, 0);
-        logCountInQueue.incrementAndGet();
-
-        // LinkedList.add大概需要7-8us
-        // 单线程时执行ConcurrentLinkedQueue.offer需要12-16us
-        msgQueue.offer(logData);
+        checkAndOfferMsgToMsgQueue(priority, tag, msg, null);
     }
 
     @Override
     public void handleMsg(int priority, String tag, String msg, Throwable tr) {
         logcatTree.handleMsg(priority, tag, msg, tr);
-
-        //offerMsgToQueue(priority, tag, msg, tr);
-        if (trees.isEmpty() || logCountInQueue.get() > maxLogCountInQueue) {
-            return;
-        }
-
-        // System.currentTimeMillis()可能需要发费3-4us, Process.myTid可能需要5-6us
-        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, tr, 0);
-        logCountInQueue.incrementAndGet();
-
-        // LinkedList.add大概需要7-8us
-        // 单线程时执行ConcurrentLinkedQueue.offer需要12-16us
-        msgQueue.offer(logData);
+        checkAndOfferMsgToMsgQueue(priority, tag, msg, tr);
     }
 
     @Override
@@ -104,14 +84,6 @@ final class TreeManager implements HandleLog, LogTreeManager {
         }
 
         return true;
-    }
-
-    private void createDispatcherThreadAndStartIfNeed() {
-        if (!trees.isEmpty() && msgDispatcherThread == null) {
-            msgDispatcherThread = new MsgDispatcherThread();
-            msgDispatcherThread.start();
-            dispatcherThreadState.set(THREAD_RUNNING);
-        }
     }
 
     @Override
@@ -141,6 +113,28 @@ final class TreeManager implements HandleLog, LogTreeManager {
         trees.clear();
         waitForMsgDispatcherThreadClosed();
         return true;
+    }
+
+    private void checkAndOfferMsgToMsgQueue(int priority, String tag, String msg, Throwable throwable) {
+        if (trees.isEmpty() || logCountInQueue.get() > maxLogCountInQueue) {
+            return;
+        }
+
+        // System.currentTimeMillis()可能需要发费3-4us, Process.myTid可能需要5-6us
+        LogData logData = new LogData(System.currentTimeMillis(), priority, tag, msg, throwable, Process.myTid());
+        logCountInQueue.incrementAndGet();
+
+        // LinkedList.add大概需要7-8us
+        // 单线程时执行ConcurrentLinkedQueue.offer需要12-16us
+        msgQueue.offer(logData);
+    }
+
+    private void createDispatcherThreadAndStartIfNeed() {
+        if (!trees.isEmpty() && msgDispatcherThread == null) {
+            msgDispatcherThread = new MsgDispatcherThread();
+            msgDispatcherThread.start();
+            dispatcherThreadState.set(THREAD_RUNNING);
+        }
     }
 
     /**

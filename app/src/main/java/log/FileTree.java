@@ -25,7 +25,7 @@ public class FileTree extends LogTree {
 
 
     private Queue<LogData> msgQueue = new ConcurrentLinkedQueue<>();
-    private LogCacheConfig logFileConfig;
+    private LogCacheTree.LogCacheConfig logFileConfig;
 
     private long maxFileLength;
     private long curWriteFileLength = 0;
@@ -51,7 +51,7 @@ public class FileTree extends LogTree {
      * @param priority      日志输出优先级
      * @param logFileConfig 指定日志备份文件，当前写文件路径和单个文件最大字节数
      */
-    public FileTree(int priority, boolean acceptCompoundMsg, LogCacheConfig logFileConfig) {
+    public FileTree(int priority, boolean acceptCompoundMsg, LogCacheTree.LogCacheConfig logFileConfig) {
         super(priority, acceptCompoundMsg);
 
         this.logFileConfig = logFileConfig;

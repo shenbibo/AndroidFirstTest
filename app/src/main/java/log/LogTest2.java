@@ -16,7 +16,7 @@ import java.util.concurrent.CountDownLatch;
  * @author sky on 2018/4/17
  * @since
  */
-public class LogTest {
+public class LogTest2 {
     private static final String TAG = "LogTest";
 
     public static void init() {
