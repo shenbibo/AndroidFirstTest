@@ -6,7 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author sky on 2018/2/26
  */
-public class LogCacheTree extends LogTree {
+public final class LogCacheTree extends LogTree {
 
     private long curWriteFileLength = 0;
     private LogCacheConfig logFileConfig;
@@ -30,12 +30,11 @@ public class LogCacheTree extends LogTree {
 
     /**
      * 构造器
-     *
-     * @param priority      日志输出优先级
+     *  @param priority      日志输出优先级
      * @param logFileConfig 指定日志备份文件，当前写文件路径和单个文件最大字节数
      */
-    public LogCacheTree(int priority, boolean acceptCompoundMsg, LogCacheConfig logFileConfig) {
-        super(priority, acceptCompoundMsg);
+    public LogCacheTree(int priority, LogCacheConfig logFileConfig) {
+        super(priority, true);
 
         this.logFileConfig = logFileConfig;
 
@@ -138,10 +137,10 @@ public class LogCacheTree extends LogTree {
      */
     List<byte[]> getMemoryCachedMsg() {
         if (msgCacheQueue == null) {
-            return new ArrayList<>();
+            return new LinkedList<>();
         }
 
-        return new ArrayList<>(msgCacheQueue);
+        return new LinkedList<>(msgCacheQueue);
     }
 
     private void writeLogToFileIfNeed(byte[] msgBytes, long length) {
@@ -188,7 +187,7 @@ public class LogCacheTree extends LogTree {
             return;
         }
 
-        File file = new File(logFileConfig.curWriteFile);
+        File file = new File(logFileConfig.getCurWriteFilePath());
         try {
             if (!file.exists()) {
                 curWriteFileLength = 0;
@@ -202,7 +201,7 @@ public class LogCacheTree extends LogTree {
 
             // 先关闭针对当前文件的写流
             closeAndSetMsgStreamNull();
-            File backupFile = new File(logFileConfig.backupFile);
+            File backupFile = new File(logFileConfig.getBackupFilePath());
             backupFile.delete();
             file.renameTo(backupFile);
             curWriteFileLength = 0;
@@ -220,7 +219,7 @@ public class LogCacheTree extends LogTree {
         }
 
         try {
-            fos = new FileOutputStream(logFileConfig.curWriteFile, true);
+            fos = new FileOutputStream(logFileConfig.getCurWriteFilePath(), true);
         } catch (FileNotFoundException exception) {
             exception.printStackTrace();
         }
@@ -235,22 +234,33 @@ public class LogCacheTree extends LogTree {
     public static class LogCacheConfig {
         /**
          * 日志文件的存放路径，如果为空，则表示不缓存到本地磁盘中
-         * */
+         */
         public String logFileDir;
         /**
-         * include the logFileDir + fileName
+         * fileName
          */
         public String backupFile;
+        /**
+         * 备份文件的名称
+         */
         public String curWriteFile;
 
         /**
          * 保存到本地日志文件中的最大长度。
-         * */
+         */
         public long maxLogFileLength;
 
         /**
          * 缓存到最新内存中的日志大小，如果<=0，则表示不缓存在内存中
-         * */
+         */
         public int maxLogMemoryCacheSize;
+
+        String getCurWriteFilePath() {
+            return logFileDir + File.separator + curWriteFile;
+        }
+
+        String getBackupFilePath() {
+            return logFileDir + File.separator + backupFile;
+        }
     }
 }

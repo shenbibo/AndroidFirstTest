@@ -143,7 +143,18 @@ final class TreeManager implements HandleLog, LogTreeManager {
     List<byte[]> getMemoryCachedMsg() {
         for (LogTree tree : trees) {
             if (tree instanceof LogCacheTree) {
-                return ((LogCacheTree) tree).getMemoryCachedMsg();
+                LogCacheTree logCacheTree = ((LogCacheTree) tree);
+
+
+                List<LogData> tempQueue = new ArrayList<>(msgQueue);
+                List<byte[]> cacheMsg = logCacheTree.getMemoryCachedMsg();
+
+                // 将消息队列中的消息全部写入到后面
+                for (LogData logData : tempQueue) {
+                    cacheMsg.add(LogHelper.compoundMsg(logData).getBytes());
+                }
+
+                return cacheMsg;
             }
         }
         return new ArrayList<>();

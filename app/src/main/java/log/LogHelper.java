@@ -94,6 +94,7 @@ final class LogHelper {
 
     /**
      * 合成日志，样式为："2018-02-26 16:53:25.123 D/Tag(pid-tid)：msg + \n + getStackTraceString"
+     *
      * <p><strong>该方法非常耗时，大约为1800us</strong>
      * */
     public static String compoundMsg(final LogData logData) {

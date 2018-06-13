@@ -40,8 +40,7 @@ public class LogTest {
         logFileConfig.maxLogMemoryCacheSize = 1024 * 512;
         //Logger.init(new FileTree(Logger.VERBOSE, logFileConfig));
         //Logger.init(new LogcatTree(Logger.VERBOSE), new FileTree(Logger.VERBOSE, logFileConfig));
-        Logger.init(1024 * 1024, new LogcatTree(Logger.VERBOSE), new LogCacheTree(Logger.VERBOSE, true,
-            logFileConfig));
+        Logger.init(1024 * 1024, new LogcatTree(Logger.VERBOSE), new LogCacheTree(Logger.VERBOSE, logFileConfig));
     }
 
     @Test

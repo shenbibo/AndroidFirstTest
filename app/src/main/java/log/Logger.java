@@ -167,6 +167,13 @@ public final class Logger {
     }
 
     /**
+     * error只打印错误
+     */
+    public static void error(String tag, Throwable tr) {
+        error(tag, null, tr);
+    }
+
+    /**
      * 打印日志
      */
     public static void println(int priority, String tag, String msg, Throwable tr) {
@@ -183,9 +190,9 @@ public final class Logger {
     /**
      * 初始化
      */
-    public static void init(int maxMemoryLogCount, LogTree... logTrees) {
+    public static void init(int maxLogCountInQueue, LogTree... logTrees) {
         if (treeManager == null) {
-            treeManager = new TreeManager(maxMemoryLogCount);
+            treeManager = new TreeManager(maxLogCountInQueue);
             treeManager.addLogTrees(logTrees);
         }
     }
