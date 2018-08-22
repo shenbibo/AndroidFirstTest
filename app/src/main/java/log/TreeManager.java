@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -20,6 +21,7 @@ final class TreeManager implements HandleLog, LogTreeManager {
     private static final int THREAD_CLOSED = -2;
     private static final int REQUEST_THREAD_CLOSE = -1;
     private static final int THREAD_RUNNING = 0;
+    private static final int REQUEST_THREAD_CLOSED_WAIT_MSG_HANDLED = 1;
 
     /**
      * 注意该对象没有使用volatile修饰这意味着在移除或添加logcat数时,
@@ -44,6 +46,11 @@ final class TreeManager implements HandleLog, LogTreeManager {
     private AtomicInteger dispatcherThreadState = new AtomicInteger(THREAD_CLOSED);
 
     /**
+     * 是否取消日志输出
+     */
+    private AtomicBoolean isCanceled = new AtomicBoolean(false);
+
+    /**
      * 消息分发线程
      */
     private Thread msgDispatcherThread;
@@ -58,12 +65,20 @@ final class TreeManager implements HandleLog, LogTreeManager {
 
     @Override
     public void handleMsg(int priority, String tag, String msg) {
+        if (isCanceled.get()) {
+            return;
+        }
+
         logcatTree.handleMsg(priority, tag, msg);
         checkAndOfferMsgToMsgQueue(priority, tag, msg, null);
     }
 
     @Override
     public void handleMsg(int priority, String tag, String msg, Throwable tr) {
+        if (isCanceled.get()) {
+            return;
+        }
+
         logcatTree.handleMsg(priority, tag, msg, tr);
         checkAndOfferMsgToMsgQueue(priority, tag, msg, tr);
     }
@@ -97,7 +112,7 @@ final class TreeManager implements HandleLog, LogTreeManager {
         boolean removed = removeTree(logTree);
 
         if (trees.isEmpty()) {
-            waitForMsgDispatcherThreadClosed();
+            waitForMsgDispatcherThreadClosed(REQUEST_THREAD_CLOSE);
         }
 
         return removed;
@@ -111,7 +126,19 @@ final class TreeManager implements HandleLog, LogTreeManager {
         release();
         setLogcatTreeEmpty();
         trees.clear();
-        waitForMsgDispatcherThreadClosed();
+        waitForMsgDispatcherThreadClosed(REQUEST_THREAD_CLOSE);
+        return true;
+    }
+
+    @Override
+    public void setCanceled(boolean isCanceled) {
+        this.isCanceled.set(isCanceled);
+    }
+
+    @Override
+    public boolean cancelAndWaitMsgHandled() {
+        setCanceled(true);
+        waitForMsgDispatcherThreadClosed(REQUEST_THREAD_CLOSED_WAIT_MSG_HANDLED);
         return true;
     }
 
@@ -196,13 +223,13 @@ final class TreeManager implements HandleLog, LogTreeManager {
         return added;
     }
 
-    private void waitForMsgDispatcherThreadClosed() {
+    private void waitForMsgDispatcherThreadClosed(int requestState) {
         if (!isThreadStateRunning()) {
             return;
         }
 
-        // 设置为-1，请求关闭线程，一直等待关闭后才退出
-        dispatcherThreadState.set(REQUEST_THREAD_CLOSE);
+        // 设置为-1，或者等待日志处理完关闭，请求关闭线程，一直等待关闭后才退出
+        dispatcherThreadState.set(requestState);
         for (; ; ) {
             if (isThreadStateClosed()) {
                 msgDispatcherThread = null;
@@ -215,6 +242,11 @@ final class TreeManager implements HandleLog, LogTreeManager {
         return dispatcherThreadState.get() == THREAD_RUNNING;
     }
 
+    private boolean isThreadWaitMsgHandled() {
+        return dispatcherThreadState.get() == REQUEST_THREAD_CLOSED_WAIT_MSG_HANDLED
+            && logCountInQueue.get() != 0;
+    }
+
     private boolean isThreadStateClosed() {
         return dispatcherThreadState.get() == THREAD_CLOSED;
     }
@@ -224,7 +256,7 @@ final class TreeManager implements HandleLog, LogTreeManager {
         @Override
         public void run() {
             try {
-                for (; isThreadStateRunning(); ) {
+                for (; isThreadStateRunning() || isThreadWaitMsgHandled(); ) {
                     // poll大约8-16us
                     LogData logData = msgQueue.poll();
 

@@ -14,4 +14,9 @@ public interface LogTreeManager {
     boolean removeLogTree(LogTree logTree);
 
     boolean clearTrees();
+
+    void setCanceled(boolean isCanceled);
+
+    /**取消，并且等待所有的消息被处理完 */
+    boolean cancelAndWaitMsgHandled();
 }
